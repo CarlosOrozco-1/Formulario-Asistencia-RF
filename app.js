@@ -57,7 +57,7 @@ const INITIAL_MEMBERS = [
     "Hrno. Denis"
 ];
 
-// Categorías iniciales para asistencia del pueblo basadas en departamentos
+// Departamentos asistencia del pueblo
 const PUEBLO_INITIAL = [
     { nombre: "Alabanza", cantidad: 0 },
     { nombre: "Shofares", cantidad: 0 },
@@ -140,7 +140,7 @@ async function initDB() {
         });
     }
 
-    // Insertar categorías iniciales del pueblo si no existen
+    // Insertar departamentos iniciales del pueblo si no existen
     const existingPueblo = db.exec("SELECT nombre FROM pueblo");
     if (existingPueblo.length === 0 || existingPueblo[0].values.length === 0) {
         PUEBLO_INITIAL.forEach(p => {
@@ -458,22 +458,24 @@ function DiscipuladoView({ db, date, onDateChange }) {
 
 /**
  * Componente para la vista de asistencia del Pueblo
- * Permite registrar la cantidad de personas por categoría (Danza, Cafetería, Pueblo en General)
+ * Permite registrar la cantidad de personas por departamentos
+ * 
+ *  (Danza, Cafetería, Pueblo en General)
  * @param {Object} props - Props del componente (db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange)
  */
 function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange }) {
     // Estados locales del componente
-    const [members, setMembers] = useState([]);              // Lista de categorías
+    const [members, setMembers] = useState([]);              // Lista de departamentos
     const [searchTerm, setSearchTerm] = useState('');       // Término de búsqueda
     const [isAdding, setIsAdding] = useState(false);        // Mostrar formulario de agregar
-    const [newName, setNewName] = useState({                 // Nueva categoría a agregar
+    const [newName, setNewName] = useState({                 // Nuevo departamento a agregar
         nombre: '', 
         cantidad: 0 
     });
-    const [editingId, setEditingId] = useState(null);        // ID de la categoría en edición
-    const [editValue, setEditValue] = useState({});           // Valores de la categoría en edición
+    const [editingId, setEditingId] = useState(null);        // ID del departamento en edición
+    const [editValue, setEditValue] = useState({});           // Valores del departamento en edición
 
-    // Cargar categorías de la base de datos al iniciar o cuando db cambie
+    // Cargar departamentos de la base de datos al iniciar o cuando db cambie
     useEffect(() => {
         if (db) {
             const result = db.exec("SELECT id, nombre, cantidad FROM pueblo ORDER BY nombre");
@@ -488,8 +490,8 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
     }, [db]);
 
     /**
-     * Actualiza la cantidad de una categoría
-     * @param {number} id - ID de la categoría
+     * Actualiza la cantidad de un departamento
+     * @param {number} id - ID del departamento
      * @param {number} delta - Cambio a aplicar (+1 o -1)
      */
     const updateCount = (id, delta) => {
@@ -504,7 +506,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
     };
 
     /**
-     * Agrega una nueva categoría al pueblo
+     * Agrega un nuevo departamento al pueblo
      * @param {Event} e - Evento del formulario
      */
     const addNew = (e) => {
@@ -528,9 +530,9 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
     };
 
     /**
-     * Elimina una categoría del pueblo
-     * @param {number} id - ID de la categoría
-     * @param {string} nombre - Nombre de la categoría
+     * Elimina un departamento del pueblo
+     * @param {number} id - ID del departamento
+     * @param {string} nombre - Nombre del departamento
      */
     const remove = (id, nombre) => {
         if (confirm(`¿Eliminar "${nombre}" de la lista?`)) {
@@ -545,7 +547,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
     };
 
     /**
-     * Guarda los cambios de edición de una categoría
+     * Guarda los cambios de edición de un departamento
      */
     const saveEdit = () => {
         db.run("UPDATE pueblo SET nombre = ?, cantidad = ? WHERE id = ?", 
@@ -602,10 +604,10 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
         // Calcular total de asistencia
         const total = members.reduce((acc, m) => acc + m.cantidad, 0);
 
-        // Tabla de categorías con estilo anterior
+        // Tabla de departamentos con estilo anterior
         docPdf.autoTable({
             startY: startY,
-            head: [['Categoría', 'Cantidad']],
+            head: [['Departamento', 'Cantidad']],
             body: members.map(m => [m.nombre, m.cantidad]),
             theme: 'striped',
             headStyles: { fillColor: [21, 128, 61] },
@@ -621,7 +623,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
         docPdf.save(`Asistencia_Pueblo_${dDate.replace(/\//g, '-')}.pdf`);
     };
 
-    // Filtrar categorías por término de búsqueda
+    // Filtrar departamentos por término de búsqueda
     const filtered = members.filter(m => m.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
@@ -687,7 +689,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="bg-white p-3 rounded-xl border border-slate-200 flex justify-around items-center text-center shadow-sm">
                     <div>
-                        <p className="text-[8px] text-slate-400 font-black uppercase">Categorías</p>
+                        <p className="text-[8px] text-slate-400 font-black uppercase">Departamentos</p>
                         <p className="text-xl font-black text-slate-700 leading-none">{members.length}</p>
                     </div>
                     <div className="w-[1px] h-6 bg-slate-100"></div>
@@ -698,7 +700,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
                 </div>
             </div>
 
-            {/* Lista de categorías */}
+            {/* Lista de departamentos */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
                     <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Asistencia RF</h2>
@@ -712,13 +714,13 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
                     </div>
                 </div>
 
-                {/* Formulario para agregar nueva categoría */}
+                {/* Formulario para agregar nuevo departamento */}
                 {isAdding && (
                     <form onSubmit={addNew} className="p-4 bg-green-50 border-b border-slate-200 flex gap-2 items-center">
                         <input 
                             autoFocus 
                             className="flex-1 p-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-green-500 outline-none" 
-                            placeholder="Nombre de la categoría (ej. Danza, Cafetería, Pueblo en General, Orden,)" 
+                            placeholder="Nombre del departamento (ej. Danza, Cafetería, Pueblo en General, Orden,)" 
                             value={newName.nombre} 
                             onChange={(e) => setNewName({...newName, nombre: e.target.value})} 
                         />
@@ -731,7 +733,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
                     </form>
                 )}
 
-                {/* Lista de categorías con controles de cantidad */}
+                {/* Lista de departamentos con controles de cantidad */}
                 <div className="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scroll">
                     {filtered.map((m, i) => (
                         editingId === m.id ? (
@@ -786,11 +788,54 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
 function App() {
     // Estados globales de la aplicación
     const [db, setDb] = useState(null);                // Instancia de la base de datos
-    const [activeTab, setActiveTab] = useState('discipulado');  // Pestaña activa
+    const [activeTab, setActiveTab] = useState('pueblo');  // Pestaña activa (inicia en 'pueblo' para acceso público)
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);  // Fecha actual
     const [loading, setLoading] = useState(true);       // Estado de carga
-    const [servicio, setServicio] = useState('');      // Servicio seleccionado (Primero, Segundo, Tercero, Único)
-    const [grupoServidores, setGrupoServidores] = useState(''); // Grupo de servidores (1, 2, 3, 4)
+    const [servicio, setServicio] = useState('');      // Servicio seleccionado
+    const [grupoServidores, setGrupoServidores] = useState(''); // Grupo de servidores
+    const [isDiscipuladoAuthenticated, setIsDiscipuladoAuthenticated] = useState(false); // Autenticación Discipulado
+    const [showCodeModal, setShowCodeModal] = useState(false); // Mostrar modal de código
+    const [codigoIngresado, setCodigoIngresado] = useState(''); // Código ingresado por el usuario
+    const [errorCodigo, setErrorCodigo] = useState(''); // Mensaje de error del código
+    const [showPassword, setShowPassword] = useState(false); // Mostrar/ocultar código de acceso
+    
+    // Código correcto quemado para acceder a Discipulado
+    const CODIGO_DISCIPULADO = 'DISCIPULADO2026';
+
+    /**
+     * Valida el código ingresado y otorga acceso a Discipulado
+     */
+    const validarCodigo = () => {
+        // Validar que el código coincida
+        if (codigoIngresado === CODIGO_DISCIPULADO) {
+            // Código correcto - otorgar acceso
+            setIsDiscipuladoAuthenticated(true);
+            setShowCodeModal(false);
+            setCodigoIngresado('');
+            setErrorCodigo('');
+            setActiveTab('discipulado');
+        } else {
+            // Código incorrecto - mostrar error
+            setErrorCodigo('Código incorrecto. Intenta nuevamente.');
+            setCodigoIngresado('');
+        }
+    };
+
+    /**
+     * Maneja el click en el botón de Discipulado
+     * Si no está autenticado, muestra el modal de código
+     */
+    const handleDiscipuladoClick = () => {
+        if (!isDiscipuladoAuthenticated) {
+            // No autenticado - mostrar modal
+            setShowCodeModal(true);
+            setErrorCodigo('');
+            setCodigoIngresado('');
+        } else {
+            // Ya autenticado - cambiar a Discipulado
+            setActiveTab('discipulado');
+        }
+    };
 
     // Inicializar la base de datos al montar el componente
     useEffect(() => {
@@ -800,10 +845,10 @@ function App() {
         });
     }, []);
 
-    // Actualizar iconos de Lucide cuando cambie el estado de carga o la pestaña
+    // Actualizar iconos de Lucide cuando cambie el estado de carga, pestaña, modal de código o visibilidad de contraseña
     useEffect(() => {
         if (!loading && window.lucide) window.lucide.createIcons();
-    }, [loading, activeTab]);
+    }, [loading, activeTab, showCodeModal, showPassword]);
 
     // Mostrar pantalla de carga mientras se inicializa la base de datos
     if (loading) {
@@ -832,10 +877,10 @@ function App() {
                     {/* Botones de navegación entre pestañas */}
                     <div className="flex gap-1 bg-green-800 p-1 rounded-lg">
                         <button 
-                            onClick={() => setActiveTab('discipulado')}
+                            onClick={handleDiscipuladoClick}
                             className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${activeTab === 'discipulado' ? 'bg-white text-green-800 shadow' : 'text-white/70 hover:text-white'}`}
                         >
-                            Discipulado
+                            Discipulado {!isDiscipuladoAuthenticated && <span className="ml-1">🔒</span>}
                         </button>
                         <button 
                             onClick={() => setActiveTab('pueblo')}
@@ -849,12 +894,85 @@ function App() {
 
             {/* Contenido principal - cambia según la pestaña activa */}
             <main className="max-w-6xl mx-auto w-full p-4 flex-1">
-                {activeTab === 'discipulado' ? (
+                {activeTab === 'discipulado' && isDiscipuladoAuthenticated ? (
                     <DiscipuladoView db={db} date={date} onDateChange={setDate} />
-                ) : (
+                ) : activeTab === 'pueblo' ? (
                     <PuebloView db={db} date={date} onDateChange={setDate} servicio={servicio} onServicioChange={setServicio} grupoServidores={grupoServidores} onGrupoChange={setGrupoServidores} />
+                ) : (
+                    <div className="text-center py-12">
+                        <p className="text-slate-500 font-bold">Acceso denegado. Por favor, ingresa el código correcto.</p>
+                    </div>
                 )}
             </main>
+            
+            {/* Modal de ingreso de código para Discipulado */}
+            {showCodeModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+                        {/* Encabezado del modal */}
+                        <div className="flex items-center gap-3 mb-4">
+                            <i data-lucide="lock" className="text-green-700" size="28"></i>
+                            <h2 className="text-xl font-bold text-slate-900">Acceso Restringido</h2>
+                        </div>
+                        
+                        <p className="text-slate-600 text-sm mb-6">
+                            Este módulo requiere un código de acceso. Por favor, ingresa el código proporcionado.
+                        </p>
+                        
+                        {/* Campo de entrada de código con toggle de visibilidad */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Código de Acceso</label>
+                            <div className="relative">
+                                <input 
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Ingresa el código..."
+                                    value={codigoIngresado}
+                                    onChange={(e) => setCodigoIngresado(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && validarCodigo()}
+                                    className="w-full px-4 pr-12 py-2 border-2 border-slate-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 outline-none text-center font-mono text-lg"
+                                    autoFocus
+                                />
+                                {/* Botón toggle para mostrar/ocultar código */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    title={showPassword ? "Ocultar código" : "Mostrar código"}
+                                >
+                                    <i data-lucide={showPassword ? "eye-off" : "eye"} size="20"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Mensaje de error */}
+                        {errorCodigo && (
+                            <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                                <p className="text-red-700 text-sm font-bold">{errorCodigo}</p>
+                            </div>
+                        )}
+                        
+                        {/* Botones de acción */}
+                        <div className="flex gap-3 justify-end">
+                            <button 
+                                onClick={() => {
+                                    setShowCodeModal(false);
+                                    setCodigoIngresado('');
+                                    setErrorCodigo('');
+                                }}
+                                className="px-4 py-2 rounded-lg text-slate-700 bg-slate-200 hover:bg-slate-300 font-bold transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={validarCodigo}
+                                className="px-4 py-2 rounded-lg text-white bg-green-700 hover:bg-green-800 font-bold transition-colors flex items-center gap-2"
+                            >
+                                <i data-lucide="unlock" size="16"></i> Validar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             {/* Pie de página */}
             <footer className="mt-auto text-center text-slate-400 text-[10px] py-6 uppercase tracking-[0.2em] font-bold">
