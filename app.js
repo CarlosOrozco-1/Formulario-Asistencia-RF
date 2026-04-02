@@ -590,7 +590,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
         docPdf.text(servicioTexto, 105, 22, { align: "center" });
         
         // Mostrar fecha
-        docPdf.text(`Domingo ${dDate}`, 105, 26, { align: "center" });
+        docPdf.text(` ${dDate}`, 105, 26, { align: "center" });
         
         // Mostrar grupo si está seleccionado
         if (grupoServidores) {
@@ -662,7 +662,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
                         className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500"
                     >
                         <option value="">Servicio</option>
-                        <option value="Primero">Primero</option>
+                        <option value="Primer">Primero</option>
                         <option value="Segundo">Segundo</option>
                         <option value="Tercer">Tercer</option>
                         <option value="Único">Único</option>
