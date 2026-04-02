@@ -459,9 +459,9 @@ function DiscipuladoView({ db, date, onDateChange }) {
 /**
  * Componente para la vista de asistencia del Pueblo
  * Permite registrar la cantidad de personas por categoría (Danza, Cafetería, Pueblo en General)
- * @param {Object} props - Props del componente (db, date, onDateChange)
+ * @param {Object} props - Props del componente (db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange)
  */
-function PuebloView({ db, date, onDateChange }) {
+function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange }) {
     // Estados locales del componente
     const [members, setMembers] = useState([]);              // Lista de categorías
     const [searchTerm, setSearchTerm] = useState('');       // Término de búsqueda
@@ -562,6 +562,10 @@ function PuebloView({ db, date, onDateChange }) {
     /**
      * Genera y descarga el reporte de asistencia del pueblo en PDF
      */
+    /**
+     * Genera y descarga el reporte de asistencia del pueblo en PDF
+     * Incluye información del servicio y grupo de servidores seleccionados
+     */
     const downloadPDF = () => {
         const { jsPDF } = window.jspdf;
         const docPdf = new jsPDF();
@@ -569,56 +573,49 @@ function PuebloView({ db, date, onDateChange }) {
         
         // Encabezado del reporte - Título principal
         docPdf.setFont("helvetica", "bold");
-        docPdf.setFontSize(20);
+        docPdf.setFontSize(16);
         docPdf.setTextColor(0, 0, 0);
-        docPdf.text("Reporte de asistencia", 105, 15, { align: "center" });
+        docPdf.text("Reporte de asistencia", 105, 12, { align: "center" });
         
         // Información de la iglesia
-        docPdf.setFontSize(11);
+        docPdf.setFontSize(10);
         docPdf.setFont("helvetica", "normal");
         docPdf.setTextColor(0, 0, 0);
-        docPdf.text("Iglesia de Cristo Restauración Familiar", 105, 25, { align: "center" });
-        docPdf.text("Segundo servicio", 105, 31, { align: "center" });
+        docPdf.text("Iglesia de Cristo Restauración Familiar", 105, 18, { align: "center" });
         
-        // Fecha del servicio
-        docPdf.setFont("helvetica", "normal");
-        docPdf.setFontSize(10);
-        docPdf.text(`Domingo ${dDate}`, 105, 37, { align: "center" });
+        // Mostrar servicio seleccionado o texto por defecto
+        const servicioTexto = servicio ? `${servicio} servicio` : "Segundo servicio";
+        docPdf.text(servicioTexto, 105, 22, { align: "center" });
+        
+        // Mostrar fecha
+        docPdf.text(`Domingo ${dDate}`, 105, 26, { align: "center" });
+        
+        // Mostrar grupo si está seleccionado
+        if (grupoServidores) {
+            docPdf.setFontSize(9);
+            docPdf.text(`Grupo de Servidores: ${grupoServidores}`, 105, 30, { align: "center" });
+            var startY = 34; // Ajustar posición de la tabla si hay grupo
+        } else {
+            var startY = 32;
+        }
         
         // Calcular total de asistencia
         const total = members.reduce((acc, m) => acc + m.cantidad, 0);
 
-        // Crear tabla con departamentos y cantidad
-        // Generar body con formato de puntos: "Departamento................cantidad"
-        const bodyData = members.map(m => {
-            const maxLength = 45; // Longitud máxima para la línea
-            const deptName = m.nombre;
-            const cantidad = m.cantidad.toString();
-            // Calcular cantidad de puntos necesarios
-            const puntosNeeded = Math.max(0, maxLength - deptName.length - cantidad.length);
-            const puntos = '.'.repeat(Math.max(0, puntosNeeded));
-            // Retornar el nombre con puntos y cantidad alineada a la derecha
-            return [deptName + puntos + cantidad];
-        });
-        
-        // Agregar fila de total
-        bodyData.push(['Total asistencia' + '.'.repeat(30) + total]);
-
-        // Tabla de categorías sin encabezado (solo datos)
+        // Tabla de categorías con estilo anterior
         docPdf.autoTable({
-            startY: 45,
-            body: bodyData,
-            theme: 'plain',
-            margin: { left: 25, right: 25 },
-            styles: {
-                font: "helvetica",
-                fontSize: 11,
-                cellPadding: 3,
-                textColor: [0, 0, 0],
-                halign: 'left',
-                valign: 'middle'
-            }
+            startY: startY,
+            head: [['Categoría', 'Cantidad']],
+            body: members.map(m => [m.nombre, m.cantidad]),
+            theme: 'striped',
+            headStyles: { fillColor: [21, 128, 61] },
+            margin: { left: 40, right: 40 }
         });
+
+        // Total al final de la tabla
+        docPdf.setFontSize(12);
+        docPdf.setTextColor(21, 128, 61);
+        docPdf.text(`Total: ${total}`, 105, docPdf.lastAutoTable.finalY + 10, { align: "center" });
 
         // Descargar archivo
         docPdf.save(`Asistencia_Pueblo_${dDate.replace(/\//g, '-')}.pdf`);
@@ -629,8 +626,9 @@ function PuebloView({ db, date, onDateChange }) {
 
     return (
         <div className="space-y-4">
-            {/* Barra de búsqueda y selector de fecha */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Barra de búsqueda, selector de fecha, servicio y grupo */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                {/* Búsqueda */}
                 <div className="md:col-span-2 bg-white p-2 rounded-xl border border-slate-200 flex items-center gap-2 shadow-sm">
                     <div className="relative flex-1">
                         <i data-lucide="search" className="absolute left-3 top-2.5 text-slate-400" size="18"></i>
@@ -642,15 +640,51 @@ function PuebloView({ db, date, onDateChange }) {
                             onChange={e => setSearchTerm(e.target.value)} 
                         />
                     </div>
+                </div>
+                
+                {/* Fecha */}
+                <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center shadow-sm">
                     <input 
                         type="date" 
-                        className="bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500" 
+                        className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500" 
                         value={date} 
                         onChange={e => onDateChange(e.target.value)} 
                     />
                 </div>
                 
-                {/* Tarjetas de estadísticas */}
+                {/* Selector de Servicio */}
+                <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center shadow-sm">
+                    <select 
+                        value={servicio} 
+                        onChange={e => onServicioChange(e.target.value)}
+                        className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500"
+                    >
+                        <option value="">Servicio</option>
+                        <option value="Primero">Primero</option>
+                        <option value="Segundo">Segundo</option>
+                        <option value="Tercer">Tercer</option>
+                        <option value="Único">Único</option>
+                    </select>
+                </div>
+                
+                {/* Selector de Grupo de Servidores */}
+                <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center shadow-sm">
+                    <select 
+                        value={grupoServidores} 
+                        onChange={e => onGrupoChange(e.target.value)}
+                        className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500"
+                    >
+                        <option value="">Grupo</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Tarjetas de estadísticas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="bg-white p-3 rounded-xl border border-slate-200 flex justify-around items-center text-center shadow-sm">
                     <div>
                         <p className="text-[8px] text-slate-400 font-black uppercase">Categorías</p>
@@ -755,6 +789,8 @@ function App() {
     const [activeTab, setActiveTab] = useState('discipulado');  // Pestaña activa
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);  // Fecha actual
     const [loading, setLoading] = useState(true);       // Estado de carga
+    const [servicio, setServicio] = useState('');      // Servicio seleccionado (Primero, Segundo, Tercero, Único)
+    const [grupoServidores, setGrupoServidores] = useState(''); // Grupo de servidores (1, 2, 3, 4)
 
     // Inicializar la base de datos al montar el componente
     useEffect(() => {
@@ -816,7 +852,7 @@ function App() {
                 {activeTab === 'discipulado' ? (
                     <DiscipuladoView db={db} date={date} onDateChange={setDate} />
                 ) : (
-                    <PuebloView db={db} date={date} onDateChange={setDate} />
+                    <PuebloView db={db} date={date} onDateChange={setDate} servicio={servicio} onServicioChange={setServicio} grupoServidores={grupoServidores} onGrupoChange={setGrupoServidores} />
                 )}
             </main>
             
