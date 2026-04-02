@@ -1,5 +1,5 @@
 /**
- * Sistema de Asistencia
+ * Sistema de Asistencia RF
  * Archivo: app.js
  * 
  * Este archivo contiene toda la lógica de la aplicación:
@@ -584,7 +584,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
         docPdf.text("Iglesia de Cristo Restauración Familiar", 105, 18, { align: "center" });
         
         // Mostrar servicio seleccionado o texto por defecto
-        const servicioTexto = servicio ? `${servicio} servicio` : "Segundo servicio";
+        const servicioTexto = servicio ? `${servicio} servicio` : "servicio";
         docPdf.text(servicioTexto, 105, 22, { align: "center" });
         
         // Mostrar fecha
@@ -701,7 +701,7 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
             {/* Lista de categorías */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
-                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Asistencia de Pueblo</h2>
+                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Asistencia RF</h2>
                     <div className="flex gap-2">
                         <button onClick={downloadPDF} className="bg-yellow-400 text-green-900 px-3 py-1.5 rounded-lg font-black text-[10px] flex items-center gap-1 hover:bg-yellow-300 transition-colors">
                             <i data-lucide="file-down" size="14"></i> PDF
@@ -825,7 +825,7 @@ function App() {
                     <div className="flex items-center gap-3">
                         <i data-lucide="church" className="bg-white/20 p-2 rounded-lg"></i>
                         <div>
-                            <h1 className="font-bold text-lg leading-tight">Monte Carmelo</h1>
+                            <h1 className="font-bold text-lg leading-tight">Iglesia Restauración Familiar</h1>
                             <p className="text-[10px] opacity-90 font-bold uppercase tracking-widest">Sistema de Asistencia</p>
                         </div>
                     </div>
@@ -858,7 +858,7 @@ function App() {
             
             {/* Pie de página */}
             <footer className="mt-auto text-center text-slate-400 text-[10px] py-6 uppercase tracking-[0.2em] font-bold">
-                Monte Carmelo • 2026
+                Iglesia Restauración Familiar • 2026
             </footer>
         </div>
     );
