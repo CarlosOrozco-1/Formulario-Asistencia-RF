@@ -73,7 +73,8 @@ const PUEBLO_INITIAL = [
     { nombre: "Cafetería", cantidad: 0 },
     { nombre: "Departamento de Orden", cantidad: 0 },
     { nombre: "Nuevos", cantidad: 0 },
-    { nombre: "Pueblo en general", cantidad: 0 }
+    { nombre: "Pueblo en general", cantidad: 0 },
+    { nombre: "Visitas", cantidad: 0 }
 ];
 
 // ============================================
@@ -185,6 +186,11 @@ function DiscipuladoView({ db, date, onDateChange }) {
     const [newName, setNewName] = useState('');               // Nombre nuevo a agregar
     const [editingIndex, setEditingIndex] = useState(null);   // Índice del miembro en edición
     const [editValue, setEditValue] = useState('');           // Valor del nombre en edición
+    const [selectedStates, setSelectedStates] = useState({    // Filtros de estado seleccionados
+        [STATUS.PRESENT]: true,
+        [STATUS.REPORTED]: true,
+        [STATUS.ABSENT]: true
+    });
 
     // Cargar miembros de la base de datos al iniciar o cuando db cambie
     useEffect(() => {
@@ -259,57 +265,102 @@ function DiscipuladoView({ db, date, onDateChange }) {
     };
 
     /**
-     * Genera y descarga el reporte de asistencia en PDF
+     * Alterna filtros de estado (Presentes, Reportados, Ausentes)
+     * @param {string} state - Estado a alternar
      */
-    const downloadPDF = () => {
+    const toggleStateFilter = (state) => {
+        setSelectedStates(prev => ({
+            ...prev,
+            [state]: !prev[state]
+        }));
+    };
+
+    /**
+     * Genera y descarga el reporte de asistencia en PDF basado en filtros seleccionados
+     */
+    const downloadPDFFiltered = () => {
         const { jsPDF } = window.jspdf;
         const docPdf = new jsPDF();
         const dDate = displayDate(date);
         
-        // Título del reporte
+        // Filtrar miembros según estados seleccionados
+        const filteredByState = members.filter(m => {
+            const state = attendance[m];
+            if (state === STATUS.PRESENT) return selectedStates[STATUS.PRESENT];
+            if (state === STATUS.REPORTED) return selectedStates[STATUS.REPORTED];
+            return selectedStates[STATUS.ABSENT]; // Sin estado o ABSENT
+        });
+        
+        // Calcular estadísticas
+        const p = filteredByState.filter(m => attendance[m] === STATUS.PRESENT).length;
+        const r = filteredByState.filter(m => attendance[m] === STATUS.REPORTED).length;
+        const a = filteredByState.filter(m => !attendance[m] || attendance[m] === STATUS.ABSENT).length;
+        
+        // Encabezado
         docPdf.setFont("helvetica", "bold");
         docPdf.setTextColor(21, 128, 61);
-        docPdf.text("Discipulado Monte Carmelo 3", 105, 20, { align: "center" });
+        docPdf.text("Discipulado Monte Carmelo - Reporte Filtrado", 105, 15, { align: "center" });
         
-        // Fecha del reporte
-        docPdf.setFontSize(10);
+        // Fecha
+        docPdf.setFontSize(9);
         docPdf.setTextColor(100);
-        docPdf.text(`Reporte de Asistencia: ${dDate}`, 105, 28, { align: "center" });
-
-        // Calcular estadísticas
-        const p = Object.values(attendance).filter(v => v === STATUS.PRESENT).length;
-        const r = Object.values(attendance).filter(v => v === STATUS.REPORTED).length;
+        docPdf.text(`Reporte de Asistencia: ${dDate}`, 105, 21, { align: "center" });
+        
+        // Filtros aplicados
+        const filtrosAplicados = [];
+        if (selectedStates[STATUS.PRESENT]) filtrosAplicados.push('Presentes');
+        if (selectedStates[STATUS.REPORTED]) filtrosAplicados.push('Reportados');
+        if (selectedStates[STATUS.ABSENT]) filtrosAplicados.push('Ausentes');
+        docPdf.setFontSize(8);
+        docPdf.setTextColor(100);
+        docPdf.text(`Filtros: ${filtrosAplicados.join(', ')} | Total: ${filteredByState.length}`, 105, 26, { align: "center" });
 
         // Tabla de resumen
         docPdf.autoTable({
-            startY: 35,
-            head: [['Resumen', 'Cantidad']],
+            startY: 31,
+            head: [['Estado', 'Cantidad']],
             body: [
-                ['Presentes', p], 
-                ['Reportados', r], 
-                ['Ausentes', members.length - (p+r)], 
-                ['Total', members.length]
+                ...(selectedStates[STATUS.PRESENT] ? [['Presentes', p]] : []),
+                ...(selectedStates[STATUS.REPORTED] ? [['Reportados', r]] : []),
+                ...(selectedStates[STATUS.ABSENT] ? [['Ausentes', a]] : []),
+                ['TOTAL FILTRADO', filteredByState.length]
             ],
             theme: 'grid',
             headStyles: { fillColor: [21, 128, 61] },
             margin: { left: 40, right: 40 }
         });
 
-        // Tabla de asistencia detallada
+        // Tabla detallada
         docPdf.autoTable({
-            startY: docPdf.lastAutoTable.finalY + 10,
-            head: [['#', 'Nombre del Hermano(a)', 'Estado']],
-            body: members.map((m, i) => [i + 1, m, (attendance[m] || 'AUSENCIA').toUpperCase()]),
+            startY: docPdf.lastAutoTable.finalY + 8,
+            head: [['#', 'Nombre', 'Estado']],
+            body: filteredByState.map((m, i) => [
+                i + 1, 
+                m, 
+                (attendance[m] === STATUS.PRESENT ? 'PRESENTE' : attendance[m] === STATUS.REPORTED ? 'REPORTADO' : 'AUSENCIA')
+            ]),
             theme: 'striped',
-            headStyles: { fillColor: [21, 128, 61] }
+            headStyles: { fillColor: [21, 128, 61] },
+            styles: { fontSize: 9 }
         });
 
-        // Descargar archivo
-        docPdf.save(`Asistencia_MC3_${dDate.replace(/\//g, '-')}.pdf`);
+        // Descargar
+        docPdf.save(`Asistencia_MC3_${dDate.replace(/\//g, '-')}_Filtrado.pdf`);
     };
 
-    // Filtrar miembros por término de búsqueda
-    const filtered = members.filter(m => m.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Filtrar miembros por término de búsqueda Y por estados seleccionados
+    const filtered = members.filter(m => {
+        // Filtrar por término de búsqueda
+        const matchesSearch = m.toLowerCase().includes(searchTerm.toLowerCase());
+        // Filtrar por estado seleccionado
+        const state = attendance[m];
+        const matchesState = 
+            (state === STATUS.PRESENT && selectedStates[STATUS.PRESENT]) ||
+            (state === STATUS.REPORTED && selectedStates[STATUS.REPORTED]) ||
+            ((!state || state === STATUS.ABSENT) && selectedStates[STATUS.ABSENT]);
+        
+        return matchesSearch && matchesState;
+    });
 
     return (
         <div className="space-y-4">
@@ -357,10 +408,42 @@ function DiscipuladoView({ db, date, onDateChange }) {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
                     <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Listado de Hermanos</h2>
-                    <div className="flex gap-2">
-                        <button onClick={downloadPDF} className="bg-yellow-400 text-green-900 px-3 py-1.5 rounded-lg font-black text-[10px] flex items-center gap-1 hover:bg-yellow-300 transition-colors">
-                            <i data-lucide="file-down" size="14"></i> PDF
+                    <div className="flex gap-2 flex-wrap">
+                        {/* Controles de filtro de estado */}
+                        <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-lg">
+                            <label className="flex items-center gap-1 cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors">
+                                <input 
+                                    type="checkbox" 
+                                    checked={selectedStates[STATUS.PRESENT]} 
+                                    onChange={() => toggleStateFilter(STATUS.PRESENT)}
+                                    className="w-4 h-4 cursor-pointer"
+                                />
+                                <span className="text-[9px] font-bold text-green-700">Presentes</span>
+                            </label>
+                            <label className="flex items-center gap-1 cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors">
+                                <input 
+                                    type="checkbox" 
+                                    checked={selectedStates[STATUS.REPORTED]} 
+                                    onChange={() => toggleStateFilter(STATUS.REPORTED)}
+                                    className="w-4 h-4 cursor-pointer"
+                                />
+                                <span className="text-[9px] font-bold text-amber-700">Reportados</span>
+                            </label>
+                            <label className="flex items-center gap-1 cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors">
+                                <input 
+                                    type="checkbox" 
+                                    checked={selectedStates[STATUS.ABSENT]} 
+                                    onChange={() => toggleStateFilter(STATUS.ABSENT)}
+                                    className="w-4 h-4 cursor-pointer"
+                                />
+                                <span className="text-[9px] font-bold text-red-700">Ausentes</span>
+                            </label>
+                        </div>
+                        {/* Botón de descarga de PDF con filtros */}
+                        <button onClick={downloadPDFFiltered} className="bg-yellow-400 text-green-900 px-3 py-1.5 rounded-lg font-black text-[10px] flex items-center gap-1 hover:bg-yellow-300 transition-colors">
+                            <i data-lucide="file-down" size="14"></i> PDF Filtrado
                         </button>
+                        {/* Botón de agregar */}
                         <button onClick={() => setIsAdding(!isAdding)} className="text-green-700 font-black text-[10px] flex items-center gap-1 hover:bg-green-100 px-3 py-1 rounded-lg transition-colors">
                             <i data-lucide="user-plus" size="14"></i> AGREGAR
                         </button>
@@ -459,8 +542,6 @@ function DiscipuladoView({ db, date, onDateChange }) {
 /**
  * Componente para la vista de asistencia del Pueblo
  * Permite registrar la cantidad de personas por departamentos
- * 
- *  (Danza, Cafetería, Pueblo en General)
  * @param {Object} props - Props del componente (db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange)
  */
 function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange }) {
