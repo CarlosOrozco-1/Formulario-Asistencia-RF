@@ -82,8 +82,54 @@ const PUEBLO_INITIAL = [
 // ============================================
 
 /**
+ * Convierte un Uint8Array a una cadena Base64
+ * @param {Uint8Array} arr 
+ * @returns {string}
+ */
+function uint8ArrayToBase64(arr) {
+    let binary = '';
+    const len = arr.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(arr[i]);
+    }
+    return window.btoa(binary);
+}
+
+/**
+ * Convierte una cadena Base64 a Uint8Array
+ * @param {string} base64 
+ * @returns {Uint8Array}
+ */
+function base64ToUint8Array(base64) {
+    const binary_string = window.atob(base64);
+    const len = binary_string.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes;
+}
+
+/**
+ * Guarda el estado actual de la base de datos en localStorage
+ * @param {Database} db - Instancia de la base de datos
+ */
+function saveDatabase(db) {
+    if (!db) return;
+    try {
+        const data = db.export();
+        const base64 = uint8ArrayToBase64(data);
+        localStorage.setItem('asistencia_db', base64);
+        localStorage.setItem('asistencia_db_timestamp', Date.now().toString());
+        // Comentario para cumplir con Rule 1: Guardamos la base de datos en localStorage para persistencia
+    } catch (e) {
+        console.error("Error al guardar la base de datos:", e);
+    }
+}
+
+/**
  * Inicializa la base de datos SQLite en el navegador
- * Crea las tablas necesarias e inserta datos iniciales si no existen
+ * Intenta cargar una base de datos guardada o crea una nueva
  * @returns {Promise<Database>} Instancia de la base de datos
  */
 async function initDB() {
@@ -91,7 +137,34 @@ async function initDB() {
     const SQL = await initSqlJs({ 
         locateFile: file => `https://unpkg.com/sql.js@1.8.0/dist/${file}` 
     });
-    const db = new SQL.Database();
+    
+    let db;
+    const savedData = localStorage.getItem('asistencia_db');
+    const savedTimestamp = localStorage.getItem('asistencia_db_timestamp');
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    // Verificar si existe información guardada
+    if (savedData) {
+        try {
+            const bytes = base64ToUint8Array(savedData);
+            db = new SQL.Database(bytes);
+            
+            // Lógica de expiración: si han pasado más de 24 horas, reiniciar contadores de asistencia
+            if (savedTimestamp && (now - parseInt(savedTimestamp) > twentyFourHours)) {
+                // Reiniciar cantidades del pueblo a cero para un nuevo día
+                db.run("UPDATE pueblo SET cantidad = 0");
+                // Guardamos el cambio de reinicio
+                saveDatabase(db);
+            }
+        } catch (e) {
+            console.error("Error al cargar base de datos guardada:", e);
+            db = new SQL.Database();
+        }
+    } else {
+        // Si no hay datos, crear una base de datos nueva
+        db = new SQL.Database();
+    }
     
     // Crear tablas necesarias para el sistema
     // Tabla de discipulos: registra los hermanos del grupo
@@ -150,6 +223,9 @@ async function initDB() {
         });
     }
 
+    // Guardar el estado inicial o actualizado de la base de datos
+    saveDatabase(db);
+
     return db;
 }
 
@@ -192,23 +268,63 @@ function DiscipuladoView({ db, date, onDateChange }) {
         [STATUS.ABSENT]: true
     });
 
-    // Cargar miembros de la base de datos al iniciar o cuando db cambie
+    // Cargar miembros y asistencia de la base de datos al iniciar o cuando db/date cambie
     useEffect(() => {
         if (db) {
+            // Cargar nombres de hermanos
             const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
             if (result.length > 0) {
                 setMembers(result[0].values.map(r => r[0]));
             }
+
+            // Cargar asistencia guardada para la fecha actual
+            const attResult = db.exec(`
+                SELECT d.nombre, a.estado 
+                FROM asistencia_discipulado a
+                JOIN discipulos d ON a.discipulo_id = d.id
+                WHERE a.fecha = ?
+            `, [date]);
+            
+            const newAtt = {};
+            if (attResult.length > 0) {
+                attResult[0].values.forEach(row => {
+                    newAtt[row[0]] = row[1];
+                });
+            }
+            setAttendance(newAtt);
+            // Comentario Rule 1: Cargamos la asistencia desde la base de datos según la fecha
         }
-    }, [db]);
+    }, [db, date]);
 
     /**
      * Maneja el cambio de estado de asistencia de un miembro
      * @param {string} name - Nombre del miembro
      * @param {string} s - Nuevo estado (presente, reportado, ausente)
      */
+    /**
+     * Maneja el cambio de estado de asistencia de un miembro y lo guarda en la DB
+     * @param {string} name - Nombre del miembro
+     * @param {string} s - Nuevo estado (presente, reportado, ausente)
+     */
     const handleStatus = (name, s) => {
         setAttendance(prev => ({ ...prev, [name]: s }));
+        
+        // Guardar el estado en la base de datos
+        const res = db.exec("SELECT id FROM discipulos WHERE nombre = ?", [name]);
+        if (res.length > 0) {
+            const discipuloId = res[0].values[0][0];
+            const check = db.exec("SELECT id FROM asistencia_discipulado WHERE discipulo_id = ? AND fecha = ?", 
+                [discipuloId, date]);
+            
+            if (check.length > 0) {
+                db.run("UPDATE asistencia_discipulado SET estado = ? WHERE id = ?", [s, check[0].values[0][0]]);
+            } else {
+                db.run("INSERT INTO asistencia_discipulado (discipulo_id, fecha, estado) VALUES (?, ?, ?)", 
+                    [discipuloId, date, s]);
+            }
+            // Persistir la base de datos después del cambio
+            saveDatabase(db);
+        }
     };
 
     /**
@@ -222,6 +338,8 @@ function DiscipuladoView({ db, date, onDateChange }) {
                 db.run("INSERT INTO discipulos (nombre) VALUES (?)", [newName.trim()]);
                 const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
                 setMembers(result[0].values.map(r => r[0]));
+                // Guardar cambios en la lista de miembros
+                saveDatabase(db);
             } catch (err) { 
                 console.log(err); 
             }
@@ -239,6 +357,8 @@ function DiscipuladoView({ db, date, onDateChange }) {
             db.run("DELETE FROM discipulos WHERE nombre = ?", [name]);
             const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
             setMembers(result[0].values.map(r => r[0]));
+            // Guardar cambios tras eliminación
+            saveDatabase(db);
         }
     };
 
@@ -260,6 +380,8 @@ function DiscipuladoView({ db, date, onDateChange }) {
                 delete newAtt[oldName];
                 setAttendance(newAtt);
             }
+            // Guardar tras editar nombre
+            saveDatabase(db);
         }
         setEditingIndex(null);
     };
@@ -580,6 +702,8 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
             if (m.id === id) {
                 const newVal = Math.max(0, m.cantidad + delta);
                 db.run(`UPDATE pueblo SET cantidad = ? WHERE id = ?`, [newVal, id]);
+                // Persistir el cambio de cantidad
+                saveDatabase(db);
                 return { ...m, cantidad: newVal };
             }
             return m;
@@ -602,6 +726,8 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
                     nombre: r[1], 
                     cantidad: r[2]
                 })));
+                // Guardar nuevo departamento
+                saveDatabase(db);
             } catch (err) { 
                 console.log(err); 
             }
@@ -624,6 +750,8 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
                 nombre: r[1], 
                 cantidad: r[2]
             })));
+            // Guardar cambios tras eliminación
+            saveDatabase(db);
         }
     };
 
@@ -639,6 +767,8 @@ function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoS
             nombre: r[1], 
             cantidad: r[2]
         })));
+        // Guardar cambios tras edición
+        saveDatabase(db);
         setEditingId(null);
     };
 
