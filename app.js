@@ -74,7 +74,9 @@ const PUEBLO_INITIAL = [
     { nombre: "Departamento de Orden", cantidad: 0 },
     { nombre: "Nuevos", cantidad: 0 },
     { nombre: "Pueblo en general", cantidad: 0 },
-    { nombre: "Visitas", cantidad: 0 }
+    { nombre: "Visitas", cantidad: 0 },
+    { nombre: "Pastores Sacsuy", cantidad: 0 },
+    { nombre: "Pastores Lo de Zet", cantidad: 0 }
 ];
 
 // ============================================
@@ -206,22 +208,27 @@ async function initDB() {
         )
     `);
 
-    // Insertar miembros iniciales del discipulado si no existen
-    const existingMembers = db.exec("SELECT nombre FROM discipulos");
-    if (existingMembers.length === 0 || existingMembers[0].values.length === 0) {
-        INITIAL_MEMBERS.forEach(n => {
+    // Para cada miembro inicial, validamos si ya existe en la base de datos para no duplicarlo
+    INITIAL_MEMBERS.forEach(n => {
+        // Buscamos el miembro por su nombre para verificar si ya fue registrado
+        const check = db.exec("SELECT id FROM discipulos WHERE nombre = ?", [n]);
+        // Si no existe en la base de datos, lo registramos para habilitarlo en la lista
+        if (check.length === 0 || check[0].values.length === 0) {
+            // Insertamos el nombre del nuevo miembro en la tabla discipulos
             db.run("INSERT INTO discipulos (nombre) VALUES (?)", [n]);
-        });
-    }
+        }
+    });
 
-    // Insertar departamentos iniciales del pueblo si no existen
-    const existingPueblo = db.exec("SELECT nombre FROM pueblo");
-    if (existingPueblo.length === 0 || existingPueblo[0].values.length === 0) {
-        PUEBLO_INITIAL.forEach(p => {
-            db.run("INSERT INTO pueblo (nombre, cantidad) VALUES (?, ?)", 
-                [p.nombre, 0]);
-        });
-    }
+    // Para cada departamento inicial, validamos si ya existe para habilitar los nuevos
+    PUEBLO_INITIAL.forEach(p => {
+        // Buscamos el departamento por su nombre en la tabla pueblo para ver si ya existe
+        const check = db.exec("SELECT id FROM pueblo WHERE nombre = ?", [p.nombre]);
+        // Si no existe, lo agregamos para mostrarlo y poder usarlo en la asistencia
+        if (check.length === 0 || check[0].values.length === 0) {
+            // Insertamos el departamento en la tabla pueblo con cantidad inicial en cero
+            db.run("INSERT INTO pueblo (nombre, cantidad) VALUES (?, ?)", [p.nombre, 0]);
+        }
+    });
 
     // Guardar el estado inicial o actualizado de la base de datos
     saveDatabase(db);
