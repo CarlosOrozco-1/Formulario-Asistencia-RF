@@ -2,1078 +2,112 @@
  * Sistema de Asistencia RF
  * Archivo: app.js
  * 
- * Este archivo contiene toda la lógica de la aplicación:
- * - Inicialización de la base de datos SQLite
- * - Componentes React para las vistas de Discipulado y Pueblo
- * - Generación de reportes en PDF
+ * Este archivo actúa como el punto de entrada principal (orquestador) de la aplicación.
+ * Utiliza los componentes y helpers cargados globalmente en la ventana.
  */
 
-// ============================================
-// Importar hooks de React desde el scope global
-// ============================================
-// Destructurar useState y useEffect desde la librería React cargada en el HTML
+// Extraemos los componentes y funciones necesarios del ámbito global window
 const { useState, useEffect } = React;
-
-// ============================================
-// Constantes y datos iniciales
-// ============================================
-
-// Estados posibles para la asistencia del discipulado
-const STATUS = { 
-    PRESENT: 'presente', 
-    REPORTED: 'reportado', 
-    ABSENT: 'ausente' 
-};
-
-// Lista inicial de miembros del discipulado
-const INITIAL_MEMBERS = [
-    "Hrno. Santos Hernández", 
-    "Hrna. Norma de Hernández", 
-    "Hrno. Gerson Sánchez", 
-    "Hrna. Jackeline de Sánchez", 
-    "Hrna. Sarai Sánchez", 
-    "Hrno. Gabriel Olivares", 
-    "Hrna. Marian de Olivares", 
-    "Hrna. Sofia Olivares", 
-    "Hrno. Carlos Orozco", 
-    "Hrna. Ana Maria de Orozco", 
-    "Hrna. Angy Orozco", 
-    "Hrna. Alejandra Orozco", 
-    "Hrno. Emanuel Godinez", 
-    "Hrna. Heydi de Godinez", 
-    "Hrno. Jamed", 
-    "Hrno. Oscar Lopez", 
-    "Hrno. Héctor", 
-    "Hrna. Nuria", 
-    "Hrno. Fernando Eguizabal", 
-    "Hrna. Leidy López de Eguizabal", 
-    "Hrna. Maybelin de Leonardo", 
-    "Hrno. Brayan Leonardo", 
-    "Hrno. Daniel Solis", 
-    "Hrna. Karla Soto", 
-    "Hrno. Marlon González", 
-    "Hrno. Jorge", 
-    "Hrno. Andre", 
-    "Hrno. Denis"
-];
-
-// Departamentos asistencia del pueblo
-const PUEBLO_INITIAL = [
-    { nombre: "Alabanza", cantidad: 0 },
-    { nombre: "Shofares", cantidad: 0 },
-    { nombre: "Danza en general", cantidad: 0 },
-    { nombre: "Intercesión", cantidad: 0 },
-    { nombre: "Ancianos", cantidad: 0 },
-    { nombre: "Multimedia", cantidad: 0 },
-    { nombre: "Servidores", cantidad: 0 },
-    { nombre: "Maestros", cantidad: 0 },
-    { nombre: "Ovejitas", cantidad: 0 },
-    { nombre: "Encargadas corderitos", cantidad: 0 },
-    { nombre: "Corderitos", cantidad: 0 },
-    { nombre: "Cafetería", cantidad: 0 },
-    { nombre: "Departamento de Orden", cantidad: 0 },
-    { nombre: "Nuevos", cantidad: 0 },
-    { nombre: "Pueblo en general", cantidad: 0 },
-    { nombre: "Visitas", cantidad: 0 },
-    { nombre: "Pastores Sacsuy", cantidad: 0 },
-    { nombre: "Pastores Lo de Zet", cantidad: 0 }
-];
-
-// ============================================
-// Funciones de Base de Datos
-// ============================================
-
-/**
- * Convierte un Uint8Array a una cadena Base64
- * @param {Uint8Array} arr 
- * @returns {string}
- */
-function uint8ArrayToBase64(arr) {
-    let binary = '';
-    const len = arr.byteLength;
-    for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(arr[i]);
-    }
-    return window.btoa(binary);
-}
-
-/**
- * Convierte una cadena Base64 a Uint8Array
- * @param {string} base64 
- * @returns {Uint8Array}
- */
-function base64ToUint8Array(base64) {
-    const binary_string = window.atob(base64);
-    const len = binary_string.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binary_string.charCodeAt(i);
-    }
-    return bytes;
-}
-
-/**
- * Guarda el estado actual de la base de datos en localStorage
- * @param {Database} db - Instancia de la base de datos
- */
-function saveDatabase(db) {
-    if (!db) return;
-    try {
-        const data = db.export();
-        const base64 = uint8ArrayToBase64(data);
-        localStorage.setItem('asistencia_db', base64);
-        localStorage.setItem('asistencia_db_timestamp', Date.now().toString());
-        // Comentario para cumplir con Rule 1: Guardamos la base de datos en localStorage para persistencia
-    } catch (e) {
-        console.error("Error al guardar la base de datos:", e);
-    }
-}
-
-/**
- * Inicializa la base de datos SQLite en el navegador
- * Intenta cargar una base de datos guardada o crea una nueva
- * @returns {Promise<Database>} Instancia de la base de datos
- */
-async function initDB() {
-    // Inicializar SQL.js con la ubicación del archivo wasm
-    const SQL = await initSqlJs({ 
-        locateFile: file => `https://unpkg.com/sql.js@1.8.0/dist/${file}` 
-    });
-    
-    let db;
-    const savedData = localStorage.getItem('asistencia_db');
-    const savedTimestamp = localStorage.getItem('asistencia_db_timestamp');
-    const now = Date.now();
-    const twentyFourHours = 24 * 60 * 60 * 1000;
-
-    // Verificar si existe información guardada
-    if (savedData) {
-        try {
-            const bytes = base64ToUint8Array(savedData);
-            db = new SQL.Database(bytes);
-            
-            // Lógica de expiración: si han pasado más de 24 horas, reiniciar contadores de asistencia
-            if (savedTimestamp && (now - parseInt(savedTimestamp) > twentyFourHours)) {
-                // Reiniciar cantidades del pueblo a cero para un nuevo día
-                db.run("UPDATE pueblo SET cantidad = 0");
-                // Guardamos el cambio de reinicio
-                saveDatabase(db);
-            }
-        } catch (e) {
-            console.error("Error al cargar base de datos guardada:", e);
-            db = new SQL.Database();
-        }
-    } else {
-        // Si no hay datos, crear una base de datos nueva
-        db = new SQL.Database();
-    }
-    
-    // Crear tablas necesarias para el sistema
-    // Tabla de discipulos: registra los hermanos del grupo
-    db.run(`
-        CREATE TABLE IF NOT EXISTS discipulos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT UNIQUE
-        )
-    `);
-    
-    // Tabla de asistencia del discipulo: registra la asistencia por fecha
-    db.run(`
-        CREATE TABLE IF NOT EXISTS asistencia_discipulado (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            discipulo_id INTEGER,
-            fecha TEXT,
-            estado TEXT,
-            FOREIGN KEY(discipulo_id) REFERENCES discipulos(id)
-        )
-    `);
-    
-    // Tabla de pueblo: registra las categorías de asistencia del pueblo
-    db.run(`
-        CREATE TABLE IF NOT EXISTS pueblo (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT UNIQUE,
-            cantidad INTEGER DEFAULT 0
-        )
-    `);
-    
-    // Tabla de asistencia del pueblo: registra la asistencia por fecha
-    db.run(`
-        CREATE TABLE IF NOT EXISTS asistencia_pueblo (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            pueblo_id INTEGER,
-            fecha TEXT,
-            cantidad INTEGER,
-            FOREIGN KEY(pueblo_id) REFERENCES pueblo(id)
-        )
-    `);
-
-    // Para cada miembro inicial, validamos si ya existe en la base de datos para no duplicarlo
-    INITIAL_MEMBERS.forEach(n => {
-        // Buscamos el miembro por su nombre para verificar si ya fue registrado
-        const check = db.exec("SELECT id FROM discipulos WHERE nombre = ?", [n]);
-        // Si no existe en la base de datos, lo registramos para habilitarlo en la lista
-        if (check.length === 0 || check[0].values.length === 0) {
-            // Insertamos el nombre del nuevo miembro en la tabla discipulos
-            db.run("INSERT INTO discipulos (nombre) VALUES (?)", [n]);
-        }
-    });
-
-    // Para cada departamento inicial, validamos si ya existe para habilitar los nuevos
-    PUEBLO_INITIAL.forEach(p => {
-        // Buscamos el departamento por su nombre en la tabla pueblo para ver si ya existe
-        const check = db.exec("SELECT id FROM pueblo WHERE nombre = ?", [p.nombre]);
-        // Si no existe, lo agregamos para mostrarlo y poder usarlo en la asistencia
-        if (check.length === 0 || check[0].values.length === 0) {
-            // Insertamos el departamento en la tabla pueblo con cantidad inicial en cero
-            db.run("INSERT INTO pueblo (nombre, cantidad) VALUES (?, ?)", [p.nombre, 0]);
-        }
-    });
-
-    // Guardar el estado inicial o actualizado de la base de datos
-    saveDatabase(db);
-
-    return db;
-}
-
-// ============================================
-// Funciones utilitarias
-// ============================================
-
-/**
- * Convierte una fecha en formato YYYY-MM-DD a DD/MM/YYYY
- * @param {string} d - Fecha en formato ISO (YYYY-MM-DD)
- * @returns {string} Fecha formateada DD/MM/YYYY
- */
-function displayDate(d) {
-    if (!d) return '';
-    const [y, m, day] = d.split('-');
-    return `${day}/${m}/${y}`;
-}
-
-// ============================================
-// Componentes React
-// ============================================
-
-/**
- * Componente para la vista de asistencia del Discipulado
- * Permite registrar la asistencia de cada miembro con estados: Presente, Reportado, Ausencia
- * @param {Object} props - Props del componente (db, date, onDateChange)
- */
-function DiscipuladoView({ db, date, onDateChange }) {
-    // Estados locales del componente
-    const [members, setMembers] = useState([]);              // Lista de miembros
-    const [attendance, setAttendance] = useState({});         // Estado de asistencia actual
-    const [searchTerm, setSearchTerm] = useState('');         // Término de búsqueda
-    const [isAdding, setIsAdding] = useState(false);           // Mostrar formulario de agregar
-    const [newName, setNewName] = useState('');               // Nombre nuevo a agregar
-    const [editingIndex, setEditingIndex] = useState(null);   // Índice del miembro en edición
-    const [editValue, setEditValue] = useState('');           // Valor del nombre en edición
-    const [selectedStates, setSelectedStates] = useState({    // Filtros de estado seleccionados
-        [STATUS.PRESENT]: true,
-        [STATUS.REPORTED]: true,
-        [STATUS.ABSENT]: true
-    });
-
-    // Cargar miembros y asistencia de la base de datos al iniciar o cuando db/date cambie
-    useEffect(() => {
-        if (db) {
-            // Cargar nombres de hermanos
-            const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
-            if (result.length > 0) {
-                setMembers(result[0].values.map(r => r[0]));
-            }
-
-            // Cargar asistencia guardada para la fecha actual
-            const attResult = db.exec(`
-                SELECT d.nombre, a.estado 
-                FROM asistencia_discipulado a
-                JOIN discipulos d ON a.discipulo_id = d.id
-                WHERE a.fecha = ?
-            `, [date]);
-            
-            const newAtt = {};
-            if (attResult.length > 0) {
-                attResult[0].values.forEach(row => {
-                    newAtt[row[0]] = row[1];
-                });
-            }
-            setAttendance(newAtt);
-            // Comentario Rule 1: Cargamos la asistencia desde la base de datos según la fecha
-        }
-    }, [db, date]);
-
-    /**
-     * Maneja el cambio de estado de asistencia de un miembro
-     * @param {string} name - Nombre del miembro
-     * @param {string} s - Nuevo estado (presente, reportado, ausente)
-     */
-    /**
-     * Maneja el cambio de estado de asistencia de un miembro y lo guarda en la DB
-     * @param {string} name - Nombre del miembro
-     * @param {string} s - Nuevo estado (presente, reportado, ausente)
-     */
-    const handleStatus = (name, s) => {
-        setAttendance(prev => ({ ...prev, [name]: s }));
-        
-        // Guardar el estado en la base de datos
-        const res = db.exec("SELECT id FROM discipulos WHERE nombre = ?", [name]);
-        if (res.length > 0) {
-            const discipuloId = res[0].values[0][0];
-            const check = db.exec("SELECT id FROM asistencia_discipulado WHERE discipulo_id = ? AND fecha = ?", 
-                [discipuloId, date]);
-            
-            if (check.length > 0) {
-                db.run("UPDATE asistencia_discipulado SET estado = ? WHERE id = ?", [s, check[0].values[0][0]]);
-            } else {
-                db.run("INSERT INTO asistencia_discipulado (discipulo_id, fecha, estado) VALUES (?, ?, ?)", 
-                    [discipuloId, date, s]);
-            }
-            // Persistir la base de datos después del cambio
-            saveDatabase(db);
-        }
-    };
-
-    /**
-     * Agrega un nuevo miembro al discipulado
-     * @param {Event} e - Evento del formulario
-     */
-    const addNew = (e) => {
-        e.preventDefault();
-        if (newName.trim() && !members.includes(newName.trim())) {
-            try {
-                db.run("INSERT INTO discipulos (nombre) VALUES (?)", [newName.trim()]);
-                const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
-                setMembers(result[0].values.map(r => r[0]));
-                // Guardar cambios en la lista de miembros
-                saveDatabase(db);
-            } catch (err) { 
-                console.log(err); 
-            }
-            setNewName('');
-            setIsAdding(false);
-        }
-    };
-
-    /**
-     * Elimina un miembro del discipulado
-     * @param {string} name - Nombre del miembro a eliminar
-     */
-    const remove = (name) => {
-        if (confirm(`¿Eliminar a ${name} de la lista?`)) {
-            db.run("DELETE FROM discipulos WHERE nombre = ?", [name]);
-            const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
-            setMembers(result[0].values.map(r => r[0]));
-            // Guardar cambios tras eliminación
-            saveDatabase(db);
-        }
-    };
-
-    /**
-     * Guarda los cambios de edición de un miembro
-     * @param {number} idx - Índice del miembro en el array
-     */
-    const saveEdit = (idx) => {
-        const val = editValue.trim();
-        if (val && val !== members[idx]) {
-            db.run("UPDATE discipulos SET nombre = ? WHERE nombre = ?", [val, members[idx]]);
-            const oldName = members[idx];
-            const result = db.exec("SELECT nombre FROM discipulos ORDER BY nombre");
-            setMembers(result[0].values.map(r => r[0]));
-            
-            // Actualizar también en el estado de asistencia si existe
-            if (attendance[oldName]) {
-                const newAtt = { ...attendance, [val]: attendance[oldName] };
-                delete newAtt[oldName];
-                setAttendance(newAtt);
-            }
-            // Guardar tras editar nombre
-            saveDatabase(db);
-        }
-        setEditingIndex(null);
-    };
-
-    /**
-     * Alterna filtros de estado (Presentes, Reportados, Ausentes)
-     * @param {string} state - Estado a alternar
-     */
-    const toggleStateFilter = (state) => {
-        setSelectedStates(prev => ({
-            ...prev,
-            [state]: !prev[state]
-        }));
-    };
-
-    /**
-     * Genera y descarga el reporte de asistencia en PDF basado en filtros seleccionados
-     */
-    const downloadPDFFiltered = () => {
-        const { jsPDF } = window.jspdf;
-        const docPdf = new jsPDF();
-        const dDate = displayDate(date);
-        
-        // Filtrar miembros según estados seleccionados
-        const filteredByState = members.filter(m => {
-            const state = attendance[m];
-            if (state === STATUS.PRESENT) return selectedStates[STATUS.PRESENT];
-            if (state === STATUS.REPORTED) return selectedStates[STATUS.REPORTED];
-            return selectedStates[STATUS.ABSENT]; // Sin estado o ABSENT
-        });
-        
-        // Calcular estadísticas
-        const p = filteredByState.filter(m => attendance[m] === STATUS.PRESENT).length;
-        const r = filteredByState.filter(m => attendance[m] === STATUS.REPORTED).length;
-        const a = filteredByState.filter(m => !attendance[m] || attendance[m] === STATUS.ABSENT).length;
-        
-        // Encabezado
-        docPdf.setFont("helvetica", "bold");
-        docPdf.setTextColor(21, 128, 61);
-        docPdf.text("Discipulado Monte Carmelo - Reporte Filtrado", 105, 15, { align: "center" });
-        
-        // Fecha
-        docPdf.setFontSize(9);
-        docPdf.setTextColor(100);
-        docPdf.text(`Reporte de Asistencia: ${dDate}`, 105, 21, { align: "center" });
-        
-        // Filtros aplicados
-        const filtrosAplicados = [];
-        if (selectedStates[STATUS.PRESENT]) filtrosAplicados.push('Presentes');
-        if (selectedStates[STATUS.REPORTED]) filtrosAplicados.push('Reportados');
-        if (selectedStates[STATUS.ABSENT]) filtrosAplicados.push('Ausentes');
-        docPdf.setFontSize(8);
-        docPdf.setTextColor(100);
-        docPdf.text(`Filtros: ${filtrosAplicados.join(', ')} | Total: ${filteredByState.length}`, 105, 26, { align: "center" });
-
-        // Tabla de resumen
-        docPdf.autoTable({
-            startY: 31,
-            head: [['Estado', 'Cantidad']],
-            body: [
-                ...(selectedStates[STATUS.PRESENT] ? [['Presentes', p]] : []),
-                ...(selectedStates[STATUS.REPORTED] ? [['Reportados', r]] : []),
-                ...(selectedStates[STATUS.ABSENT] ? [['Ausentes', a]] : []),
-                ['TOTAL FILTRADO', filteredByState.length]
-            ],
-            theme: 'grid',
-            headStyles: { fillColor: [21, 128, 61] },
-            margin: { left: 40, right: 40 }
-        });
-
-        // Tabla detallada
-        docPdf.autoTable({
-            startY: docPdf.lastAutoTable.finalY + 8,
-            head: [['#', 'Nombre', 'Estado']],
-            body: filteredByState.map((m, i) => [
-                i + 1, 
-                m, 
-                (attendance[m] === STATUS.PRESENT ? 'PRESENTE' : attendance[m] === STATUS.REPORTED ? 'REPORTADO' : 'AUSENCIA')
-            ]),
-            theme: 'striped',
-            headStyles: { fillColor: [21, 128, 61] },
-            styles: { fontSize: 9 }
-        });
-
-        // Descargar
-        docPdf.save(`Asistencia_MC3_${dDate.replace(/\//g, '-')}_Filtrado.pdf`);
-    };
-
-    // Filtrar miembros por término de búsqueda Y por estados seleccionados
-    const filtered = members.filter(m => {
-        // Filtrar por término de búsqueda
-        const matchesSearch = m.toLowerCase().includes(searchTerm.toLowerCase());
-        // Filtrar por estado seleccionado
-        const state = attendance[m];
-        const matchesState = 
-            (state === STATUS.PRESENT && selectedStates[STATUS.PRESENT]) ||
-            (state === STATUS.REPORTED && selectedStates[STATUS.REPORTED]) ||
-            ((!state || state === STATUS.ABSENT) && selectedStates[STATUS.ABSENT]);
-        
-        return matchesSearch && matchesState;
-    });
-
-    return (
-        <div className="space-y-4">
-            {/* Barra de búsqueda y selector de fecha */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="md:col-span-2 bg-white p-2 rounded-xl border border-slate-200 flex items-center gap-2 shadow-sm">
-                    <div className="relative flex-1">
-                        <i data-lucide="search" className="absolute left-3 top-2.5 text-slate-400" size="18"></i>
-                        <input 
-                            type="text" 
-                            placeholder="Buscar en la lista..." 
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none" 
-                            value={searchTerm} 
-                            onChange={e => setSearchTerm(e.target.value)} 
-                        />
-                    </div>
-                    <input 
-                        type="date" 
-                        className="bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500" 
-                        value={date} 
-                        onChange={e => onDateChange(e.target.value)} 
-                    />
-                </div>
-                
-                {/* Tarjetas de estadísticas */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 flex justify-around items-center text-center shadow-sm">
-                    <div>
-                        <p className="text-[8px] text-slate-400 font-black uppercase tracking-tighter">Presente</p>
-                        <p className="text-xl font-black text-green-600 leading-none">{Object.values(attendance).filter(v => v === STATUS.PRESENT).length}</p>
-                    </div>
-                    <div className="w-[1px] h-6 bg-slate-100"></div>
-                    <div>
-                        <p className="text-[8px] text-slate-400 font-black uppercase tracking-tighter">Reporte</p>
-                        <p className="text-xl font-black text-amber-500 leading-none">{Object.values(attendance).filter(v => v === STATUS.REPORTED).length}</p>
-                    </div>
-                    <div className="w-[1px] h-6 bg-slate-100"></div>
-                    <div>
-                        <p className="text-[8px] text-slate-400 font-black uppercase tracking-tighter">Total</p>
-                        <p className="text-xl font-black text-slate-700 leading-none">{members.length}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Lista de miembros */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
-                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Listado de Hermanos</h2>
-                    <div className="flex gap-2 flex-wrap">
-                        {/* Controles de filtro de estado */}
-                        <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-lg">
-                            <label className="flex items-center gap-1 cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    checked={selectedStates[STATUS.PRESENT]} 
-                                    onChange={() => toggleStateFilter(STATUS.PRESENT)}
-                                    className="w-4 h-4 cursor-pointer"
-                                />
-                                <span className="text-[9px] font-bold text-green-700">Presentes</span>
-                            </label>
-                            <label className="flex items-center gap-1 cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    checked={selectedStates[STATUS.REPORTED]} 
-                                    onChange={() => toggleStateFilter(STATUS.REPORTED)}
-                                    className="w-4 h-4 cursor-pointer"
-                                />
-                                <span className="text-[9px] font-bold text-amber-700">Reportados</span>
-                            </label>
-                            <label className="flex items-center gap-1 cursor-pointer hover:bg-slate-200 px-2 py-1 rounded transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    checked={selectedStates[STATUS.ABSENT]} 
-                                    onChange={() => toggleStateFilter(STATUS.ABSENT)}
-                                    className="w-4 h-4 cursor-pointer"
-                                />
-                                <span className="text-[9px] font-bold text-red-700">Ausentes</span>
-                            </label>
-                        </div>
-                        {/* Botón de descarga de PDF con filtros */}
-                        <button onClick={downloadPDFFiltered} className="bg-yellow-400 text-green-900 px-3 py-1.5 rounded-lg font-black text-[10px] flex items-center gap-1 hover:bg-yellow-300 transition-colors">
-                            <i data-lucide="file-down" size="14"></i> PDF Filtrado
-                        </button>
-                        {/* Botón de agregar */}
-                        <button onClick={() => setIsAdding(!isAdding)} className="text-green-700 font-black text-[10px] flex items-center gap-1 hover:bg-green-100 px-3 py-1 rounded-lg transition-colors">
-                            <i data-lucide="user-plus" size="14"></i> AGREGAR
-                        </button>
-                    </div>
-                </div>
-
-                {/* Formulario para agregar nuevo miembro */}
-                {isAdding && (
-                    <form onSubmit={addNew} className="p-4 bg-green-50 border-b border-slate-200 flex gap-2">
-                        <input 
-                            autoFocus 
-                            className="flex-1 p-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-green-500 outline-none" 
-                            placeholder="Nombre del hermano(a)..." 
-                            value={newName} 
-                            onChange={(e) => setNewName(e.target.value)} 
-                        />
-                        <button className="bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase shadow-md">Guardar</button>
-                    </form>
-                )}
-
-                {/* Lista de miembros con botones de asistencia */}
-                <div className="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scroll">
-                    {filtered.map((m, i) => {
-                        const globalIdx = members.indexOf(m);
-                        const isEdit = editingIndex === globalIdx;
-
-                        return (
-                            <div key={m} className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center hover:bg-slate-50 transition-colors gap-3">
-                                {/* Nombre del miembro */}
-                                <div className="flex items-center gap-3 w-full sm:w-auto">
-                                    <span className="text-[10px] font-mono text-slate-300 w-5 font-black">{(i+1).toString().padStart(2,'0')}</span>
-                                    {isEdit ? (
-                                        <div className="flex gap-1 flex-1">
-                                            <input 
-                                                className="border-2 border-green-500 px-3 py-1 rounded-lg text-sm w-full font-bold outline-none" 
-                                                value={editValue} 
-                                                onChange={(e) => setEditValue(e.target.value)} 
-                                                autoFocus 
-                                                onKeyDown={(e) => e.key === 'Enter' && saveEdit(globalIdx)}
-                                            />
-                                            <button onClick={() => saveEdit(globalIdx)} className="text-green-600 p-2 hover:bg-green-100 rounded-lg">
-                                                <i data-lucide="check" size="20"></i>
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2 group w-full">
-                                            <span className="font-bold text-slate-700 text-sm">{m}</span>
-                                            <button 
-                                                onClick={() => { setEditingIndex(globalIdx); setEditValue(m); }} 
-                                                className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-green-600 p-1.5 transition-all"
-                                            >
-                                                <i data-lucide="pencil" size="14"></i>
-                                            </button>
-                                            <button 
-                                                onClick={() => remove(m)} 
-                                                className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 p-1.5 transition-all"
-                                            >
-                                                <i data-lucide="trash-2" size="14"></i>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Botones de asistencia */}
-                                {!isEdit && (
-                                    <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
-                                        <button 
-                                            onClick={() => handleStatus(m, STATUS.PRESENT)} 
-                                            className={`flex-1 sm:px-4 py-2 rounded-lg text-[9px] font-black transition-all ${attendance[m] === STATUS.PRESENT ? 'bg-green-600 text-white shadow-md scale-105' : 'text-slate-500 hover:bg-slate-200'}`}
-                                        >
-                                            PRESENTE
-                                        </button>
-                                        <button 
-                                            onClick={() => handleStatus(m, STATUS.REPORTED)} 
-                                            className={`flex-1 sm:px-4 py-2 rounded-lg text-[9px] font-black transition-all ${attendance[m] === STATUS.REPORTED ? 'bg-amber-500 text-white shadow-md scale-105' : 'text-slate-500 hover:bg-slate-200'}`}
-                                        >
-                                            REPORTE
-                                        </button>
-                                        <button 
-                                            onClick={() => handleStatus(m, STATUS.ABSENT)} 
-                                            className={`flex-1 sm:px-4 py-2 rounded-lg text-[9px] font-black transition-all ${(!attendance[m] || attendance[m] === STATUS.ABSENT) ? 'bg-red-500 text-white shadow-md scale-105' : 'text-slate-500 hover:bg-slate-200'}`}
-                                        >
-                                            AUSENCIA
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/**
- * Componente para la vista de asistencia del Pueblo
- * Permite registrar la cantidad de personas por departamentos
- * @param {Object} props - Props del componente (db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange)
- */
-function PuebloView({ db, date, onDateChange, servicio, onServicioChange, grupoServidores, onGrupoChange }) {
-    // Estados locales del componente
-    const [members, setMembers] = useState([]);              // Lista de departamentos
-    const [searchTerm, setSearchTerm] = useState('');       // Término de búsqueda
-    const [isAdding, setIsAdding] = useState(false);        // Mostrar formulario de agregar
-    const [newName, setNewName] = useState({                 // Nuevo departamento a agregar
-        nombre: '', 
-        cantidad: 0 
-    });
-    const [editingId, setEditingId] = useState(null);        // ID del departamento en edición
-    const [editValue, setEditValue] = useState({});           // Valores del departamento en edición
-
-    // Cargar departamentos de la base de datos al iniciar o cuando db cambie
-    useEffect(() => {
-        if (db) {
-            const result = db.exec("SELECT id, nombre, cantidad FROM pueblo ORDER BY nombre");
-            if (result.length > 0) {
-                setMembers(result[0].values.map(r => ({
-                    id: r[0], 
-                    nombre: r[1], 
-                    cantidad: r[2]
-                })));
-            }
-        }
-    }, [db]);
-
-    /**
-     * Actualiza la cantidad de un departamento
-     * @param {number} id - ID del departamento
-     * @param {number} delta - Cambio a aplicar (+1 o -1)
-     */
-    const updateCount = (id, delta) => {
-        setMembers(prev => prev.map(m => {
-            if (m.id === id) {
-                const newVal = Math.max(0, m.cantidad + delta);
-                db.run(`UPDATE pueblo SET cantidad = ? WHERE id = ?`, [newVal, id]);
-                // Persistir el cambio de cantidad
-                saveDatabase(db);
-                return { ...m, cantidad: newVal };
-            }
-            return m;
-        }));
-    };
-
-    /**
-     * Agrega un nuevo departamento al pueblo
-     * @param {Event} e - Evento del formulario
-     */
-    const addNew = (e) => {
-        e.preventDefault();
-        if (newName.nombre.trim()) {
-            try {
-                db.run("INSERT INTO pueblo (nombre, cantidad) VALUES (?, ?)", 
-                    [newName.nombre.trim(), newName.cantidad]);
-                const result = db.exec("SELECT id, nombre, cantidad FROM pueblo ORDER BY nombre");
-                setMembers(result[0].values.map(r => ({
-                    id: r[0], 
-                    nombre: r[1], 
-                    cantidad: r[2]
-                })));
-                // Guardar nuevo departamento
-                saveDatabase(db);
-            } catch (err) { 
-                console.log(err); 
-            }
-            setNewName({ nombre: '', cantidad: 0 });
-            setIsAdding(false);
-        }
-    };
-
-    /**
-     * Elimina un departamento del pueblo
-     * @param {number} id - ID del departamento
-     * @param {string} nombre - Nombre del departamento
-     */
-    const remove = (id, nombre) => {
-        if (confirm(`¿Eliminar "${nombre}" de la lista?`)) {
-            db.run("DELETE FROM pueblo WHERE id = ?", [id]);
-            const result = db.exec("SELECT id, nombre, cantidad FROM pueblo ORDER BY nombre");
-            setMembers(result[0].values.map(r => ({
-                id: r[0], 
-                nombre: r[1], 
-                cantidad: r[2]
-            })));
-            // Guardar cambios tras eliminación
-            saveDatabase(db);
-        }
-    };
-
-    /**
-     * Guarda los cambios de edición de un departamento
-     */
-    const saveEdit = () => {
-        db.run("UPDATE pueblo SET nombre = ?, cantidad = ? WHERE id = ?", 
-            [editValue.nombre, editValue.cantidad, editingId]);
-        const result = db.exec("SELECT id, nombre, cantidad FROM pueblo ORDER BY nombre");
-        setMembers(result[0].values.map(r => ({
-            id: r[0], 
-            nombre: r[1], 
-            cantidad: r[2]
-        })));
-        // Guardar cambios tras edición
-        saveDatabase(db);
-        setEditingId(null);
-    };
-
-    /**
-     * Genera y descarga el reporte de asistencia del pueblo en PDF
-     */
-    /**
-     * Genera y descarga el reporte de asistencia del pueblo en PDF
-     * Incluye información del servicio y grupo de servidores seleccionados
-     */
-    const downloadPDF = () => {
-        const { jsPDF } = window.jspdf;
-        const docPdf = new jsPDF();
-        const dDate = displayDate(date);
-        
-        // Encabezado del reporte - Título principal
-        docPdf.setFont("helvetica", "bold");
-        docPdf.setFontSize(16);
-        docPdf.setTextColor(0, 0, 0);
-        docPdf.text("Reporte de asistencia", 105, 12, { align: "center" });
-        
-        // Información de la iglesia
-        docPdf.setFontSize(10);
-        docPdf.setFont("helvetica", "normal");
-        docPdf.setTextColor(0, 0, 0);
-        docPdf.text("Iglesia de Cristo Restauración Familiar", 105, 18, { align: "center" });
-        
-        // Mostrar servicio seleccionado o texto por defecto
-        const servicioTexto = servicio ? `${servicio} servicio` : "servicio";
-        docPdf.text(servicioTexto, 105, 22, { align: "center" });
-        
-        // Mostrar fecha
-        docPdf.text(` ${dDate}`, 105, 26, { align: "center" });
-        
-        // Mostrar grupo si está seleccionado
-        if (grupoServidores) {
-            docPdf.setFontSize(9);
-            docPdf.text(`Grupo de Servidores: ${grupoServidores}`, 105, 30, { align: "center" });
-            var startY = 34; // Ajustar posición de la tabla si hay grupo
-        } else {
-            var startY = 32;
-        }
-        
-        // Calcular total de asistencia
-        const total = members.reduce((acc, m) => acc + m.cantidad, 0);
-
-        // Tabla de departamentos con estilo anterior
-        docPdf.autoTable({
-            startY: startY,
-            head: [['Departamento', 'Cantidad']],
-            body: members.map(m => [m.nombre, m.cantidad]),
-            theme: 'striped',
-            headStyles: { fillColor: [21, 128, 61] },
-            margin: { left: 40, right: 40 }
-        });
-
-        // Total al final de la tabla
-        docPdf.setFontSize(12);
-        docPdf.setTextColor(21, 128, 61);
-        docPdf.text(`Total: ${total}`, 105, docPdf.lastAutoTable.finalY + 10, { align: "center" });
-
-        // Descargar archivo
-        docPdf.save(`Asistencia_Pueblo_${dDate.replace(/\//g, '-')}.pdf`);
-    };
-
-    // Filtrar departamentos por término de búsqueda
-    const filtered = members.filter(m => m.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    return (
-        <div className="space-y-4">
-            {/* Barra de búsqueda, selector de fecha, servicio y grupo */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                {/* Búsqueda */}
-                <div className="md:col-span-2 bg-white p-2 rounded-xl border border-slate-200 flex items-center gap-2 shadow-sm">
-                    <div className="relative flex-1">
-                        <i data-lucide="search" className="absolute left-3 top-2.5 text-slate-400" size="18"></i>
-                        <input 
-                            type="text" 
-                            placeholder="Buscar..." 
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none" 
-                            value={searchTerm} 
-                            onChange={e => setSearchTerm(e.target.value)} 
-                        />
-                    </div>
-                </div>
-                
-                {/* Fecha */}
-                <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center shadow-sm">
-                    <input 
-                        type="date" 
-                        className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500" 
-                        value={date} 
-                        onChange={e => onDateChange(e.target.value)} 
-                    />
-                </div>
-                
-                {/* Selector de Servicio */}
-                <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center shadow-sm">
-                    <select 
-                        value={servicio} 
-                        onChange={e => onServicioChange(e.target.value)}
-                        className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500"
-                    >
-                        <option value="">Servicio</option>
-                        <option value="Primer">Primer</option>
-                        <option value="Segundo">Segundo</option>
-                        <option value="Tercer">Tercer</option>
-                        <option value="Único">Único</option>
-                    </select>
-                </div>
-                
-                {/* Selector de Grupo de Servidores */}
-                <div className="bg-white p-2 rounded-xl border border-slate-200 flex items-center shadow-sm">
-                    <select 
-                        value={grupoServidores} 
-                        onChange={e => onGrupoChange(e.target.value)}
-                        className="w-full bg-slate-50 px-3 py-2 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-green-500"
-                    >
-                        <option value="">Grupo</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* Tarjetas de estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="bg-white p-3 rounded-xl border border-slate-200 flex justify-around items-center text-center shadow-sm">
-                    <div>
-                        <p className="text-[8px] text-slate-400 font-black uppercase">Departamentos</p>
-                        <p className="text-xl font-black text-slate-700 leading-none">{members.length}</p>
-                    </div>
-                    <div className="w-[1px] h-6 bg-slate-100"></div>
-                    <div>
-                        <p className="text-[8px] text-green-600 font-black uppercase">TOTAL</p>
-                        <p className="text-xl font-black text-green-600 leading-none">{members.reduce((acc, m) => acc + m.cantidad, 0)}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Lista de departamentos */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
-                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Asistencia RF</h2>
-                    <div className="flex gap-2">
-                        <button onClick={downloadPDF} className="bg-yellow-400 text-green-900 px-3 py-1.5 rounded-lg font-black text-[10px] flex items-center gap-1 hover:bg-yellow-300 transition-colors">
-                            <i data-lucide="file-down" size="14"></i> PDF
-                        </button>
-                        <button onClick={() => setIsAdding(!isAdding)} className="text-green-700 font-black text-[10px] flex items-center gap-1 hover:bg-green-100 px-3 py-1 rounded-lg transition-colors">
-                            <i data-lucide="plus" size="14"></i> AGREGAR
-                        </button>
-                    </div>
-                </div>
-
-                {/* Formulario para agregar nuevo departamento */}
-                {isAdding && (
-                    <form onSubmit={addNew} className="p-4 bg-green-50 border-b border-slate-200 flex gap-2 items-center">
-                        <input 
-                            autoFocus 
-                            className="flex-1 p-2 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-green-500 outline-none" 
-                            placeholder="Nombre del departamento (ej. Danza, Cafetería, Pueblo en General, Orden,)" 
-                            value={newName.nombre} 
-                            onChange={(e) => setNewName({...newName, nombre: e.target.value})} 
-                        />
-                        <div className="flex items-center gap-2 bg-white px-3 rounded-lg border border-slate-200">
-                            <span className="text-[10px] font-black text-slate-500 uppercase">Cantidad</span>
-                            <input type="number" min="0" className="w-16 text-center font-bold text-sm outline-none" 
-                                value={newName.cantidad} onChange={(e) => setNewName({...newName, cantidad: parseInt(e.target.value)||0})} />
-                        </div>
-                        <button className="bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-xs uppercase shadow-md">Guardar</button>
-                    </form>
-                )}
-
-                {/* Lista de departamentos con controles de cantidad */}
-                <div className="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scroll">
-                    {filtered.map((m, i) => (
-                        editingId === m.id ? (
-                            // Modo edición
-                            <div key={m.id} className="p-4 bg-green-50 flex gap-2 items-center">
-                                <input className="flex-1 border-2 border-green-500 px-3 py-2 rounded-lg text-sm font-bold outline-none" 
-                                    value={editValue.nombre} onChange={(e) => setEditValue({...editValue, nombre: e.target.value})} />
-                                <div className="flex items-center gap-2 bg-white px-3 rounded-lg border border-green-500">
-                                    <span className="text-[10px] font-black text-green-600 uppercase">Cantidad</span>
-                                    <input type="number" min="0" className="w-16 text-center font-bold text-sm outline-none text-green-700" 
-                                        value={editValue.cantidad} onChange={(e) => setEditValue({...editValue, cantidad: parseInt(e.target.value)||0})} />
-                                </div>
-                                <button onClick={saveEdit} className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-black uppercase">GUARDAR</button>
-                            </div>
-                        ) : (
-                            // Modo visualización
-                            <div key={m.id} className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-mono text-slate-300 w-5 font-black">{(i+1).toString().padStart(2,'0')}</span>
-                                    <span className="font-bold text-slate-700 text-sm">{m.nombre}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    {/* Controles de cantidad con botones +/- */}
-                                    <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-                                        <button onClick={() => updateCount(m.id, -1)} className="w-8 h-8 rounded-lg bg-white hover:bg-red-100 text-slate-400 hover:text-red-500 font-bold text-lg shadow-sm transition-all">-</button>
-                                        <span className="w-12 text-center font-black text-slate-700 text-lg">{m.cantidad}</span>
-                                        <button onClick={() => updateCount(m.id, 1)} className="w-8 h-8 rounded-lg bg-white hover:bg-green-100 text-slate-400 hover:text-green-600 font-bold text-lg shadow-sm transition-all">+</button>
-                                    </div>
-                                    {/* Botones de acción */}
-                                    <div className="flex gap-1">
-                                        <button onClick={() => { setEditingId(m.id); setEditValue({...m}); }} className="text-slate-300 hover:text-green-600 p-2">
-                                            <i data-lucide="pencil" size="16"></i>
-                                        </button>
-                                        <button onClick={() => remove(m.id, m.nombre)} className="text-slate-300 hover:text-red-500 p-2">
-                                            <i data-lucide="trash-2" size="16"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
+const { initDB, DiscipuladoView, PuebloView, CODIGO_DISCIPULADO } = window;
 
 /**
  * Componente principal de la aplicación
  * Maneja la navegación entre pestañas y la inicialización de la base de datos
  */
 function App() {
-    // Estados globales de la aplicación
-    const [db, setDb] = useState(null);                // Instancia de la base de datos
-    const [activeTab, setActiveTab] = useState('pueblo');  // Pestaña activa (inicia en 'pueblo' para acceso público)
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);  // Fecha actual
-    const [loading, setLoading] = useState(true);       // Estado de carga
-    const [servicio, setServicio] = useState('');      // Servicio seleccionado
-    const [grupoServidores, setGrupoServidores] = useState(''); // Grupo de servidores
-    const [isDiscipuladoAuthenticated, setIsDiscipuladoAuthenticated] = useState(false); // Autenticación Discipulado
-    const [showCodeModal, setShowCodeModal] = useState(false); // Mostrar modal de código
-    const [codigoIngresado, setCodigoIngresado] = useState(''); // Código ingresado por el usuario
-    const [errorCodigo, setErrorCodigo] = useState(''); // Mensaje de error del código
-    const [showPassword, setShowPassword] = useState(false); // Mostrar/ocultar código de acceso
-    
-    // Código correcto quemado para acceder a Discipulado
-    const CODIGO_DISCIPULADO = 'DISCIPULADO2026';
+    // Estado para guardar la instancia activa de la base de datos SQLite
+    const [db, setDb] = useState(null);
+    // Control de la pestaña seleccionada (inicia en 'pueblo' por ser la de acceso público)
+    const [activeTab, setActiveTab] = useState('pueblo');
+    // Estado para gestionar la fecha de registro en formato YYYY-MM-DD
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    // Estado de carga de la base de datos
+    const [loading, setLoading] = useState(true);
+    // Filtro de servicio religioso seleccionado por el usuario
+    const [servicio, setServicio] = useState('');
+    // Grupo de servidores seleccionado para el reporte
+    const [grupoServidores, setGrupoServidores] = useState('');
+    // Almacena si el usuario ya ingresó correctamente el código de discipulado
+    const [isDiscipuladoAuthenticated, setIsDiscipuladoAuthenticated] = useState(false);
+    // Controla si se visualiza el modal emergente del código de acceso
+    const [showCodeModal, setShowCodeModal] = useState(false);
+    // Almacena el valor de la clave que el usuario está escribiendo en el modal
+    const [codigoIngresado, setCodigoIngresado] = useState('');
+    // Mensaje de error a mostrar si el código de acceso es incorrecto
+    const [errorCodigo, setErrorCodigo] = useState('');
+    // Control de visibilidad del texto de la contraseña en el modal
+    const [showPassword, setShowPassword] = useState(false);
 
     /**
-     * Valida el código ingresado y otorga acceso a Discipulado
+     * Valida el código ingresado y otorga acceso a la vista de Discipulado
      */
     const validarCodigo = () => {
-        // Validar que el código coincida
+        // Si el valor ingresado coincide con el código requerido de seguridad
         if (codigoIngresado === CODIGO_DISCIPULADO) {
-            // Código correcto - otorgar acceso
+            // Marcamos al usuario como autenticado para el módulo
             setIsDiscipuladoAuthenticated(true);
+            // Cerramos el modal de solicitud de clave
             setShowCodeModal(false);
+            // Limpiamos el valor temporal del código
             setCodigoIngresado('');
+            // Removemos cualquier mensaje de error anterior
             setErrorCodigo('');
+            // Redireccionamos a la pestaña de discipulado
             setActiveTab('discipulado');
         } else {
-            // Código incorrecto - mostrar error
+            // Mostramos un mensaje de error y limpiamos el campo de clave
             setErrorCodigo('Código incorrecto. Intenta nuevamente.');
             setCodigoIngresado('');
         }
     };
 
     /**
-     * Maneja el click en el botón de Discipulado
-     * Si no está autenticado, muestra el modal de código
+     * Maneja el click en la pestaña de Discipulado para validar acceso
      */
     const handleDiscipuladoClick = () => {
+        // Si el usuario no ha ingresado la contraseña de seguridad previamente
         if (!isDiscipuladoAuthenticated) {
-            // No autenticado - mostrar modal
+            // Desplegamos el modal para que introduzca la contraseña
             setShowCodeModal(true);
+            // Reseteamos el mensaje de error anterior
             setErrorCodigo('');
+            // Limpiamos el texto escrito previamente en el modal
             setCodigoIngresado('');
         } else {
-            // Ya autenticado - cambiar a Discipulado
+            // Si ya está autenticado, lo redirigimos a la pestaña inmediatamente
             setActiveTab('discipulado');
         }
     };
 
-    // Inicializar la base de datos al montar el componente
+    // Efecto para inicializar la base de datos local SQLite al montar el componente
     useEffect(() => {
+        // Llamamos a la función de inicialización de la base de datos SQLite
         initDB().then(database => {
+            // Guardamos la instancia de base de datos en el estado
             setDb(database);
+            // Indicamos que ha finalizado la pantalla de carga
             setLoading(false);
         });
     }, []);
 
-    // Actualizar iconos de Lucide cuando cambie el estado de carga, pestaña, modal de código o visibilidad de contraseña
+    // Efecto para re-crear los iconos de Lucide al cargar, cambiar pestaña o abrir modales
     useEffect(() => {
-        if (!loading && window.lucide) window.lucide.createIcons();
+        // Si no está cargando y la librería Lucide está cargada en la ventana
+        if (!loading && window.lucide) {
+            // Procesamos el DOM para renderizar todos los iconos vectoriales SVG
+            window.lucide.createIcons();
+        }
     }, [loading, activeTab, showCodeModal, showPassword]);
 
-    // Mostrar pantalla de carga mientras se inicializa la base de datos
+    // Si la aplicación está cargando la base de datos SQLite, mostramos el spinner
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <div className={
+                        "w-12 h-12 border-4 border-green-600 border-t-transparent " +
+                        "rounded-full animate-spin mx-auto mb-4"
+                    }></div>
                     <p className="text-slate-600 font-bold text-sm">Cargando base de datos...</p>
                 </div>
             </div>
@@ -1082,27 +116,46 @@ function App() {
 
     return (
         <div className="min-h-screen flex flex-col">
-            {/* Barra de navegación */}
+            {/* Barra de navegación principal */}
             <nav className="bg-green-700 text-white p-4 sticky top-0 z-50 shadow-md">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <i data-lucide="church" className="bg-white/20 p-2 rounded-lg"></i>
                         <div>
-                            <h1 className="font-bold text-lg leading-tight">Iglesia Restauración Familiar</h1>
-                            <p className="text-[10px] opacity-90 font-bold uppercase tracking-widest">Sistema de Asistencia</p>
+                            <h1 className="font-bold text-lg leading-tight">
+                                Iglesia Restauración Familiar
+                            </h1>
+                            <p className="text-[10px] opacity-90 font-bold uppercase tracking-widest">
+                                Sistema de Asistencia
+                            </p>
                         </div>
                     </div>
-                    {/* Botones de navegación entre pestañas */}
+                    {/* Botones selectores de pestañas */}
                     <div className="flex gap-1 bg-green-800 p-1 rounded-lg">
                         <button 
                             onClick={handleDiscipuladoClick}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${activeTab === 'discipulado' ? 'bg-white text-green-800 shadow' : 'text-white/70 hover:text-white'}`}
+                            className={
+                                "px-4 py-2 rounded-lg text-[10px] font-black " +
+                                "uppercase transition-all " +
+                                (activeTab === 'discipulado' 
+                                    ? 'bg-white text-green-800 shadow' 
+                                    : 'text-white/70 hover:text-white')
+                            }
                         >
-                            Discipulado {!isDiscipuladoAuthenticated && <span className="ml-1">🔒</span>}
+                            Discipulado {
+                                !isDiscipuladoAuthenticated && 
+                                <span className="ml-1">🔒</span>
+                            }
                         </button>
                         <button 
                             onClick={() => setActiveTab('pueblo')}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${activeTab === 'pueblo' ? 'bg-white text-green-800 shadow' : 'text-white/70 hover:text-white'}`}
+                            className={
+                                "px-4 py-2 rounded-lg text-[10px] font-black " +
+                                "uppercase transition-all " +
+                                (activeTab === 'pueblo' 
+                                    ? 'bg-white text-green-800 shadow' 
+                                    : 'text-white/70 hover:text-white')
+                            }
                         >
                             Pueblo
                         </button>
@@ -1110,51 +163,71 @@ function App() {
                 </div>
             </nav>
 
-            {/* Contenido principal - cambia según la pestaña activa */}
+            {/* Renderizado dinámico del módulo de asistencia activo */}
             <main className="max-w-6xl mx-auto w-full p-4 flex-1">
                 {activeTab === 'discipulado' && isDiscipuladoAuthenticated ? (
                     <DiscipuladoView db={db} date={date} onDateChange={setDate} />
                 ) : activeTab === 'pueblo' ? (
-                    <PuebloView db={db} date={date} onDateChange={setDate} servicio={servicio} onServicioChange={setServicio} grupoServidores={grupoServidores} onGrupoChange={setGrupoServidores} />
+                    <PuebloView 
+                        db={db} 
+                        date={date} 
+                        onDateChange={setDate} 
+                        servicio={servicio} 
+                        onServicioChange={setServicio} 
+                        grupoServidores={grupoServidores} 
+                        onGrupoChange={setGrupoServidores} 
+                    />
                 ) : (
                     <div className="text-center py-12">
-                        <p className="text-slate-500 font-bold">Acceso denegado. Por favor, ingresa el código correcto.</p>
+                        <p className="text-slate-500 font-bold">
+                            Acceso denegado. Por favor, ingresa el código correcto.
+                        </p>
                     </div>
                 )}
             </main>
             
-            {/* Modal de ingreso de código para Discipulado */}
+            {/* Modal emergente para ingresar clave secreta de discipulado */}
             {showCodeModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
-                        {/* Encabezado del modal */}
+                        {/* Cabecera del modal */}
                         <div className="flex items-center gap-3 mb-4">
                             <i data-lucide="lock" className="text-green-700" size="28"></i>
                             <h2 className="text-xl font-bold text-slate-900">Acceso Restringido</h2>
                         </div>
                         
                         <p className="text-slate-600 text-sm mb-6">
-                            Este módulo requiere un código de acceso. Por favor, ingresa el código proporcionado.
+                            Este módulo requiere un código de acceso. Por favor, ingresa el código.
                         </p>
                         
-                        {/* Campo de entrada de código con toggle de visibilidad */}
+                        {/* Control de entrada de la contraseña con botón de alternancia */}
                         <div className="mb-4">
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Código de Acceso</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">
+                                Código de Acceso
+                            </label>
                             <div className="relative">
                                 <input 
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Ingresa el código..."
                                     value={codigoIngresado}
-                                    onChange={(e) => setCodigoIngresado(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && validarCodigo()}
-                                    className="w-full px-4 pr-12 py-2 border-2 border-slate-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 outline-none text-center font-mono text-lg"
+                                    onChange={e => setCodigoIngresado(e.target.value)}
+                                    onKeyPress={e => e.key === 'Enter' && validarCodigo()}
+                                    className={
+                                        "w-full px-4 pr-12 py-2 border-2 border-slate-300 " +
+                                        "rounded-lg focus:border-green-500 focus:ring-2 " +
+                                        "focus:ring-green-500 outline-none text-center " +
+                                        "font-mono text-lg"
+                                    }
                                     autoFocus
                                 />
-                                {/* Botón toggle para mostrar/ocultar código */}
+                                {/* Botón para mostrar/ocultar contraseña visualmente */}
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    className={
+                                        "absolute right-3 top-1/2 transform -translate-y-1/2 " +
+                                        "text-slate-400 hover:text-slate-600 transition-colors"
+                                    }
                                     title={showPassword ? "Ocultar código" : "Mostrar código"}
                                 >
                                     <i data-lucide={showPassword ? "eye-off" : "eye"} size="20"></i>
@@ -1162,14 +235,14 @@ function App() {
                             </div>
                         </div>
                         
-                        {/* Mensaje de error */}
+                        {/* Cuadro de error en caso de clave inválida */}
                         {errorCodigo && (
                             <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg">
                                 <p className="text-red-700 text-sm font-bold">{errorCodigo}</p>
                             </div>
                         )}
                         
-                        {/* Botones de acción */}
+                        {/* Botones de acción del modal */}
                         <div className="flex gap-3 justify-end">
                             <button 
                                 onClick={() => {
@@ -1177,13 +250,20 @@ function App() {
                                     setCodigoIngresado('');
                                     setErrorCodigo('');
                                 }}
-                                className="px-4 py-2 rounded-lg text-slate-700 bg-slate-200 hover:bg-slate-300 font-bold transition-colors"
+                                className={
+                                    "px-4 py-2 rounded-lg text-slate-700 bg-slate-200 " +
+                                    "hover:bg-slate-300 font-bold transition-colors"
+                                }
                             >
                                 Cancelar
                             </button>
                             <button 
                                 onClick={validarCodigo}
-                                className="px-4 py-2 rounded-lg text-white bg-green-700 hover:bg-green-800 font-bold transition-colors flex items-center gap-2"
+                                className={
+                                    "px-4 py-2 rounded-lg text-white bg-green-700 " +
+                                    "hover:bg-green-800 font-bold transition-colors " +
+                                    "flex items-center gap-2"
+                                }
                             >
                                 <i data-lucide="unlock" size="16"></i> Validar
                             </button>
@@ -1192,18 +272,18 @@ function App() {
                 </div>
             )}
             
-            {/* Pie de página */}
-            <footer className="mt-auto text-center text-slate-400 text-[10px] py-6 uppercase tracking-[0.2em] font-bold">
+            {/* Pie de página de la aplicación */}
+            <footer className={
+                "mt-auto text-center text-slate-400 text-[10px] py-6 " +
+                "uppercase tracking-[0.2em] font-bold"
+            }>
                 Iglesia Restauración Familiar • 2026
             </footer>
         </div>
     );
 }
 
-// ============================================
-// Inicialización de React
-// ============================================
-
-// Renderizar la aplicación en el elemento root
+// Inicializar la aplicación React en el elemento root del DOM
 const root = ReactDOM.createRoot(document.getElementById('root'));
+// Renderizamos el componente principal
 root.render(<App />);

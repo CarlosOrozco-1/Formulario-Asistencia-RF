@@ -13,11 +13,18 @@ Este documento establece las reglas básicas para escribir y mantener el código
 ### 2. Estructura de archivos
 ```
 /Asistencia-Discipulado
-├── index.html      # Estructura HTML y carga de librerías
-├── styles.css      # Estilos personalizados
-├── app.js          # Lógica de la aplicación (React + DB)
-├── README.md       # Descripción del proyecto
-└── AGENTS.md       # Este archivo
+├── index.html              # Estructura HTML y carga de librerías
+├── styles.css              # Estilos personalizados
+├── app.js                  # Orquestador del enrutamiento y componente raíz
+├── js/
+│   ├── constants.js        # Configuración inicial, constantes y datos estáticos
+│   ├── db.js               # Funciones de persistencia e infraestructura (SQLite)
+│   ├── discipulado-view.js # Vista e interactividad para la asistencia del Discipulado
+│   └── pueblo-view.js      # Vista e interactividad para la asistencia del Pueblo
+├── docs/
+│   └── refactorizacion.md  # Detalles del diseño arquitectónico de la refactorización
+├── README.md               # Descripción del proyecto
+└── AGENTS.md               # Este archivo
 ```
 
 ### 3. Nomenclatura

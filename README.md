@@ -4,49 +4,67 @@ Sistema de registro de asistencia para reuniones del discipulado y asistencia de
 
 ## Características
 
-- **Discipulado**: Registro de hermanos con estados (Presente/Reportado/Ausencia)
-- **Pueblo**: Registro por categorías (Danza, Cafetería, Pueblo en General)
-- **PDF**: Generación de reportes en PDF para compartir
-- **Base de datos local**: Los datos se guardan en el navegador
+- **Discipulado**: Registro de hermanos con estados (Presente/Reportado/Ausencia).
+- **Pueblo**: Registro por categorías (Alabanza, Danza, Cafetería, Pueblo en General, etc.).
+- **PDF**: Generación de reportes detallados y filtrados en PDF para compartir fácilmente.
+- **Base de datos local**: Los datos se guardan en el almacenamiento local del navegador (SQLite).
 
 ## Estructura del Proyecto
 
 ```
 /Asistencia-Discipulado
-├── index.html      # Estructura HTML y carga de librerías
-├── styles.css      # Estilos personalizados
-├── app.js          # Lógica de la aplicación (React + SQLite)
-├── README.md       # Descripción del proyecto
-└── AGENTS.md       # Reglas de desarrollo
+├── index.html              # Estructura HTML y carga de librerías
+├── styles.css              # Estilos personalizados y variables de diseño
+├── app.js                  # Orquestador del enrutamiento y componente raíz <App />
+├── js/
+│   ├── constants.js        # Configuración inicial, constantes y datos estáticos
+│   ├── db.js               # Funciones de persistencia e infraestructura (SQLite)
+│   ├── discipulado-view.js # Vista e interactividad para la asistencia del Discipulado
+│   └── pueblo-view.js      # Vista e interactividad para la asistencia del Pueblo
+├── docs/
+│   └── refactorizacion.md  # Detalles del diseño arquitectónico de la refactorización
+├── README.md               # Descripción del proyecto
+└── AGENTS.md               # Reglas de desarrollo obligatorias
 ```
 
-## Uso
+## Uso y Ejecución Local
 
-1. Abre `index.html` en un navegador
-2. Selecciona la pestaña (Discipulado o Pueblo)
-3. Agrega miembros y registra asistencia
-4. Click en "PDF" para generar el reporte
+Debido a que la aplicación está estructurada utilizando módulos de JavaScript (ES6 Modules)
+que cargan archivos de forma asíncrona, los navegadores bloquean el acceso a los archivos
+si se abre el archivo `index.html` haciendo doble clic desde el explorador de archivos (error CORS).
+
+Para probar la aplicación localmente, debes servirla a través de un servidor HTTP local:
+
+### Opción 1: Python (recomendada)
+Ejecuta el siguiente comando en la terminal desde el directorio del proyecto:
+```bash
+python3 -m http.server 8081
+```
+Luego, abre en tu navegador: `http://localhost:8081`
+
+### Opción 2: VS Code Live Server
+Instala la extensión "Live Server" en VS Code, haz clic derecho sobre `index.html` y selecciona 
+"Open with Live Server".
 
 ## Compartir en GitHub Pages
 
-1. Crea un repositorio público en GitHub
-2. Sube los archivos (index.html, styles.css, app.js, README.md, AGENTS.md)
-3. Ve a Settings > Pages
-4. Selecciona la rama `main` y guarda
-5. Comparte el enlace
+1. Sube todos los archivos (incluyendo la carpeta `js/` y `docs/`) a tu repositorio en GitHub.
+2. Ve a Settings > Pages en el menú de configuración de tu repositorio.
+3. En la sección "Build and deployment", selecciona la rama `main` (o la que utilices) y guarda.
+4. GitHub Pages servirá la aplicación de forma estática sin necesidad de compilar ningún código.
 
 ## Requisitos
 
-- Navegador moderno (Chrome, Firefox, Safari, Edge)
-- Conexión a internet (para cargar librerías CDN)
+- Navegador moderno (Chrome, Firefox, Safari, Edge).
+- Conexión a internet (para descargar las librerías necesarias desde la CDN en tiempo de ejecución).
 
-## Tecnologías usadas
+## Tecnologías Usadas
 
-- React 18 (UI)
-- Tailwind CSS (estilos)
-- SQL.js (base de datos SQLite en navegador)
-- jsPDF + autoTable (generación de PDF)
-- Lucide (iconos)
+- React 18 (Interfaz de usuario y reactividad).
+- Tailwind CSS (Estilos y responsividad).
+- SQL.js (Base de datos SQLite embebida en el navegador).
+- jsPDF + autoTable (Generación dinámica de reportes en PDF).
+- Lucide (Iconos SVG).
 
 ---
 
