@@ -6,3 +6,8 @@ node_modules/
 *.db-wal
 *.db-shm
 data/
+
+# Variables de entorno (contienen secretos, NUNCA subir a git)
+.env
+.env.local
+.env.production
