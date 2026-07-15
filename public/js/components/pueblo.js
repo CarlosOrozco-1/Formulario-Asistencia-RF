@@ -1,7 +1,7 @@
 // Componente Pueblo - Gestion de categorias, asistencia publica y reportes
 // Permite registrar asistencia (publico sin login) y ver reportes (autenticado)
 const { useState, useEffect } = React;
-const { api } = window;
+const { api, helpers } = window;
 
 window.PuebloComponent = function({ usuario, onBack }) {
     // Estados del componente: vista activa, categorias, asistencias, fecha
@@ -9,7 +9,7 @@ window.PuebloComponent = function({ usuario, onBack }) {
     const [categorias, setCategorias] = useState([]);
     const [asistencias, setAsistencias] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+    const [fecha, setFecha] = useState(helpers.today()); // Evita registrar el día UTC incorrecto
 
     // Carga las categorias al montar el componente
     useEffect(() => {

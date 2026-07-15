@@ -2,7 +2,7 @@
 // Permite crear grupos de discipulado, agregar integrantes por grupo,
 // registrar asistencia diaria y exportar reportes PDF
 const { useState, useEffect } = React;
-const { api } = window;
+const { api, helpers } = window;
 
 window.DiscipuladoComponent = function({ usuario, onBack }) {
     // Estados principales del componente
@@ -12,7 +12,8 @@ window.DiscipuladoComponent = function({ usuario, onBack }) {
     const [asistencias, setAsistencias] = useState([]);  // Asistencias del dia para el grupo
     const [loading, setLoading] = useState(true);        // Estado de carga
     const [vista, setVista] = useState('grupos');        // 'grupos' | 'miembros' | 'asistencia' | 'historial'
-    const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]); // Fecha actual
+    // Inicializa la asistencia con la fecha vigente en la zona horaria institucional.
+    const [fecha, setFecha] = useState(helpers.today());
 
     // Carga la lista de grupos al montar el componente
     useEffect(() => {

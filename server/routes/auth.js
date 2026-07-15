@@ -5,6 +5,8 @@
 const { Router } = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+// Reutiliza la validación JWT para confirmar la sesión antes de devolver la identidad.
+const { verificarToken } = require("../middleware/auth");
 const router = Router();
 
 // Secreto JWT: debe definirse en la variable de entorno JWT_SECRET.
@@ -15,6 +17,22 @@ if (!process.env.JWT_SECRET) {
   );
 }
 const SECRET = process.env.JWT_SECRET;
+
+// Devuelve la identidad vigente para restaurar la sesión después de recargar la SPA.
+router.get("/me", verificarToken, (req, res) => {
+  // Consulta el usuario para rechazar sesiones de cuentas eliminadas o desactivadas.
+  const usuario = req.app.locals.db
+    .prepare("SELECT id, username, nombre, rol FROM usuarios WHERE id = ? AND activo = 1")
+    .get(req.usuario.id);
+
+  // Invalida la sesión cuando el usuario del token ya no puede acceder al sistema.
+  if (!usuario) {
+    return res.status(401).json({ error: "La sesión ya no está disponible" });
+  }
+
+  // Entrega únicamente los datos necesarios para reconstruir el estado del frontend.
+  return res.json({ usuario });
+});
 
 router.post("/login", (req, res) => {
   const { username, password } = req.body;

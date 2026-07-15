@@ -1,0 +1,29 @@
+/* Estilos base temporales para asegurar una presentación estable antes del sistema de diseño. */
+html {
+    font-family: "Inter", system-ui, sans-serif;
+    background-color: #f8fafc;
+}
+
+/* Conserva una altura completa para los estados globales de sesión y navegación. */
+body,
+#root {
+    min-height: 100vh;
+}
+
+/* Muestra un foco consistente cuando el usuario navega mediante teclado. */
+:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* Reduce animaciones para respetar la preferencia configurada en el dispositivo. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

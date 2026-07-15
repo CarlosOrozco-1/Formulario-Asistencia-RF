@@ -2,10 +2,12 @@
 const { useState } = React;
 const { api } = window;
 
-window.LoginComponent = function ({ onLogin }) {
+// Permite informar una expiración de sesión sin crear un estado global adicional en el login.
+window.LoginComponent = function ({ onLogin, mensajeInicial = "" }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  // Conserva el mensaje recibido hasta que el usuario intente autenticarse nuevamente.
+  const [error, setError] = useState(mensajeInicial);
   const [loading, setLoading] = useState(false);
 
   // Envia credenciales al servidor

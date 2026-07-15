@@ -22,7 +22,7 @@ y documentado.
 | Fase | Nombre | Estado | Dependencia |
 |---|---|---|---|
 | 0 | Línea base y definición arquitectónica | Completada | Ninguna |
-| 1 | Estabilización crítica | Pendiente | Fase 0 |
+| 1 | Estabilización crítica | Completada | Fase 0 |
 | 2 | Contratos HTTP y manejo de errores | Pendiente | Fase 1 |
 | 3 | Separación por capas del backend | Pendiente | Fase 2 |
 | 4 | Fundamentos del sistema de diseño | Pendiente | Fase 1 |
@@ -87,6 +87,27 @@ o rediseñar pantallas.
 
 - Reorganización completa de carpetas.
 - Rediseño integral de módulos.
+
+### Resultado de implementación
+
+- Se agregó `GET /api/auth/me` con validación de JWT y usuario activo.
+- La SPA restaura la identidad después de recargar y abandona tokens inválidos.
+- Los fallos temporales de validación permiten reintentar o volver al login.
+- Los errores `401` protegidos sincronizan la sesión sin recargar la página.
+- Las credenciales incorrectas permanecen visibles como error del formulario de login.
+- Se creó `public/styles.css` con estilos base, foco visible y movimiento reducido.
+- Las fechas de asistencia y dashboard usan `America/Mexico_City` de forma configurable.
+- Los hashes desconocidos redirigen a una vista válida.
+- La colección Postman incluye el endpoint de restauración de sesión.
+
+### Evidencia de verificación
+
+- Comprobación de sintaxis de todos los archivos del backend con `node --check`.
+- Comprobación de JSX modificado mediante `deno check`.
+- Pruebas aisladas del cliente para sesión válida, `401` de login y sesión vencida.
+- Prueba del cambio de día entre UTC y `America/Mexico_City`.
+- Construcción correcta de la imagen con Docker y Node.js 20.
+- Prueba integrada de login, restauración, token inválido y entrega de estilos.
 
 ## Fase 2: Contratos HTTP y manejo de errores
 
@@ -305,6 +326,7 @@ Preparar la arquitectura corregida para una operación mantenible y una exposici
 | Media | Controles de icono carecen de nombre accesible | 7 |
 | Media | Identidad visual inconsistente | 4 |
 | Media | Fechas basadas implícitamente en UTC | 1 y 3 |
+| Alta | Dependencias npm reportan vulnerabilidades durante la construcción | 9 |
 | Baja | README e historial no coinciden con el estado actual | 9 |
 
 ## Definición de terminado para cada fase

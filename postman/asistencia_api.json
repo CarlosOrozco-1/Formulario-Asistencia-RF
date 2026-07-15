@@ -35,9 +35,29 @@
 							]
 						}
 					},
-					"response": []
-				}
-			]
+						"response": []
+					},
+					{
+						"name": "Restaurar Sesión",
+						"request": {
+							"method": "GET",
+							"header": [],
+							"description": "Valida el JWT y devuelve el usuario activo de la sesión.",
+							"url": {
+								"raw": "{{base_url}}/api/auth/me",
+								"host": [
+									"{{base_url}}"
+								],
+								"path": [
+									"api",
+									"auth",
+									"me"
+								]
+							}
+						},
+						"response": []
+					}
+				]
 		},
 		{
 			"name": "Público",

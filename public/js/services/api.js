@@ -16,7 +16,11 @@ window.api = {
         if (token) opts.headers['Authorization'] = 'Bearer ' + token;
         if (body) opts.body = JSON.stringify(body);
         const res = await fetch(this.API_URL + path, opts);
-        if (res.status === 401) { this.clearToken(); window.location.reload(); }
+        // Notifica una sesión vencida sin ocultar errores de credenciales del formulario de login
+        if (res.status === 401 && path !== '/auth/login') {
+            this.clearToken();
+            window.dispatchEvent(new Event('sesion-expirada'));
+        }
         if (path.includes('/pdf')) return res;
         return res.json();
     },
@@ -31,6 +35,26 @@ window.api = {
 
     // Autenticacion
     login: function(u, p) { return this.request('POST', '/auth/login', { username: u, password: p }); },
+
+    // Restaura la sesion validando que el token y el usuario sigan vigentes en el servidor
+    getSesion: async function() {
+        const token = this.getToken();
+        if (!token) return null;
+
+        const res = await fetch(this.API_URL + '/auth/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        // Limpia credenciales obsoletas para que la aplicacion pueda volver al login
+        if (res.status === 401 || res.status === 403) {
+            this.clearToken();
+            return null;
+        }
+
+        // Conserva el error de red o servidor para ofrecer una opcion de reintento
+        if (!res.ok) throw new Error('No fue posible validar la sesion');
+        return res.json();
+    },
 
     // Asistencias
     getAsistencias: function(params) { return this.request('GET', '/asistencias?' + new URLSearchParams(params)); },

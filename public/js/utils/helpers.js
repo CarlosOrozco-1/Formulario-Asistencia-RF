@@ -6,6 +6,12 @@ window.helpers = {
         return `${day}/${m}/${y}`;
     },
     today: function() {
-        return new Date().toISOString().split('T')[0];
+        // Usa la fecha institucional para evitar cambios de día provocados por conversiones UTC.
+        return new Intl.DateTimeFormat('fr-CA', {
+            timeZone: window.CONFIG.TIME_ZONE,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date());
     }
 };

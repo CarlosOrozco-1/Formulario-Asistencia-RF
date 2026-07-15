@@ -4,6 +4,16 @@
  */
 const { Router } = require('express');
 const router = Router();
+// Mantiene los cortes diarios alineados con la zona horaria donde opera la congregación.
+const ZONA_HORARIA = process.env.BUSINESS_TIME_ZONE || 'America/Mexico_City';
+
+// Obtiene una fecha ISO local sin convertir primero el instante a UTC.
+const obtenerFechaNegocio = () => new Intl.DateTimeFormat('fr-CA', {
+    timeZone: ZONA_HORARIA,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+}).format(new Date());
 
 // Obtener asistencias (con filtros opcionales: fecha, tipo, miembro_id)
 router.get('/', (req, res) => {
@@ -50,7 +60,7 @@ router.delete('/:id', (req, res) => {
 // Resumen completo para dashboard
 router.get('/resumen', (req, res) => {
     const db = req.app.locals.db;
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = obtenerFechaNegocio();
 
     // Total de asistencias registradas hoy
     const asistenciasHoy = db.prepare(
