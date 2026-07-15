@@ -1,10 +1,18 @@
 /**
- * Middleware de autenticación JWT
+ * Middleware de autenticacion JWT
  * Verifica el token Bearer en el header Authorization.
- * Si es válido, inyecta req.usuario con los datos del usuario autenticado.
+ * Si es valido, inyecta req.usuario con los datos del usuario autenticado.
+ * El secreto JWT debe definirse en la variable de entorno JWT_SECRET.
  */
 const jwt = require('jsonwebtoken');
-const SECRET = process.env.JWT_SECRET || 'asistencia-rf-secret-2026';
+
+// Valida que exista JWT_SECRET al cargar el modulo
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    'Falta variable de entorno JWT_SECRET. Define JWT_SECRET en tu archivo .env',
+  );
+}
+const SECRET = process.env.JWT_SECRET;
 
 function verificarToken(req, res, next) {
     const header = req.headers.authorization;
