@@ -3,7 +3,7 @@
 ## Estado
 
 - **Resultado:** completada
-- **Commit funcional:** `refactor: separar backend por capas en fase 3`
+- **Commit funcional:** `51dad02`
 - **Fecha de cierre:** 15 de julio de 2026
 - **Dependencia:** Fase 2 completada
 
