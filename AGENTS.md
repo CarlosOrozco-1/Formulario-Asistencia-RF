@@ -13,18 +13,46 @@ Este documento establece las reglas básicas para escribir y mantener el código
 ### 2. Estructura de archivos
 ```
 /Asistencia-Discipulado
-├── index.html              # Estructura HTML y carga de librerías
-├── styles.css              # Estilos personalizados
-├── app.js                  # Orquestador del enrutamiento y componente raíz
-├── js/
-│   ├── constants.js        # Configuración inicial, constantes y datos estáticos
-│   ├── db.js               # Funciones de persistencia e infraestructura (SQLite)
-│   ├── discipulado-view.js # Vista e interactividad para la asistencia del Discipulado
-│   └── pueblo-view.js      # Vista e interactividad para la asistencia del Pueblo
+├── server/
+│   ├── index.js              # Express app (API + estáticos)
+│   ├── package.json
+│   ├── database/
+│   │   ├── connection.js     # Conexión better-sqlite3
+│   │   └── init.sql          # Schema SQL
+│   ├── routes/
+│   │   ├── auth.js           # Login (POST /api/auth/login)
+│   │   ├── asistencias.js    # CRUD asistencias
+│   │   └── usuarios.js       # CRUD usuarios (admin)
+│   ├── services/
+│   │   └── pdf.js            # Generación de PDFs
+│   └── middleware/
+│       └── auth.js           # JWT verification
+├── public/
+│   ├── index.html            # Frontend entry point
+│   ├── styles.css            # Estilos personalizados
+│   ├── app.js                # Orquestador React
+│   └── js/
+│       ├── config/
+│       │   └── constants.js  # Constantes globales
+│       ├── services/
+│       │   └── api.js        # Fetch wrapper + JWT
+│       ├── components/
+│       │   ├── login.js      # Pantalla de login
+│       │   ├── dashboard.js  # Resumen de asistencias
+│       │   ├── discipulado.js# CRUD + asistencia discipulado
+│       │   └── pueblo.js     # CRUD + asistencia pueblo
+│       └── utils/
+│           └── helpers.js    # Funciones helper
 ├── docs/
-│   └── refactorizacion.md  # Detalles del diseño arquitectónico de la refactorización
-├── README.md               # Descripción del proyecto
-└── AGENTS.md               # Este archivo
+│   ├── arquitectura.md       # Arquitectura del sistema
+│   ├── db-schema.md          # Esquema de base de datos
+│   └── refactorizacion.md    # Historial de cambios
+├── database/
+│   └── init.sql              # Schema de referencia
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
+└── AGENTS.md
 ```
 
 ### 3. Nomenclatura
@@ -50,7 +78,7 @@ Este documento establece las reglas básicas para escribir y mantener el código
 - Usar nombres semánticos para clases personalizadas
 
 ### 7. Base de datos
-- Usar SQLite con SQL.js (en el navegador)
+- Usar SQLite con better-sqlite3 (en el servidor)
 - Todas las tablas deben tener ID autoincremental
 - Usar FOREIGN KEY cuando haya relaciones entre tablas
 
@@ -66,6 +94,7 @@ Este documento establece las reglas básicas para escribir y mantener el código
 4. **Al subir a GitHub**: Asegurar que los archivos estén separados correctamente
 
 ## Notas adicionales
-- Este proyecto no requiere servidor backend
-- Los datos se almacenan en el navegador del usuario
-- Los PDFs son la forma de compartir reportes
+- El servidor Express corre en Node.js, sirve API y estáticos
+- Los datos se almacenan en asistencias.db en el servidor
+- Los PDFs se generan del lado del servidor con jspdf
+- Autenticación mediante JWT con expiración de 24h
