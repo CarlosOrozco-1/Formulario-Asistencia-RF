@@ -24,7 +24,7 @@ y documentado.
 | 0 | Línea base y definición arquitectónica | Completada | Ninguna |
 | 1 | Estabilización crítica | Completada | Fase 0 |
 | 2 | Contratos HTTP y manejo de errores | Completada | Fase 1 |
-| 3 | Separación por capas del backend | Pendiente | Fase 2 |
+| 3 | Separación por capas del backend | Completada | Fase 2 |
 | 4 | Fundamentos del sistema de diseño | Pendiente | Fase 1 |
 | 5 | Shell, navegación y sesión del frontend | Pendiente | Fases 2 y 4 |
 | 6 | Refactorización de módulos funcionales | Pendiente | Fases 3 y 5 |
@@ -187,6 +187,27 @@ separados, sin cambiar el comportamiento externo.
 - Los servicios principales pueden probarse con repositorios sustitutos.
 - Los contratos HTTP existentes continúan funcionando.
 - Las escrituras múltiples son atómicas.
+
+### Resultado de implementación
+
+- El arranque del proceso se separó de la factoría de Express.
+- La configuración se valida y se inyecta explícitamente en la aplicación.
+- Autenticación, usuarios, discipulado, pueblo y asistencias se organizaron por dominio.
+- Cada módulo utiliza rutas, controladores, servicios y repositorios separados.
+- Las rutas y los controladores dejaron de acceder directamente a SQLite.
+- El registro público y protegido de Pueblo comparten el mismo caso de uso.
+- La asistencia completa de un grupo se reemplaza mediante una transacción SQLite.
+- El frontend utiliza una sola solicitud para guardar la asistencia diaria del grupo.
+- La generación de PDF quedó delimitada como adaptador de infraestructura.
+- El detalle técnico y las verificaciones están en `docs/fases/fase-3-separacion-capas.md`.
+
+### Evidencia de verificación
+
+- Comprobación de sintaxis de todos los archivos JavaScript del servidor.
+- Parseo completo de la colección Postman actualizada.
+- Pruebas integradas de autenticación y contratos existentes.
+- Prueba del reemplazo transaccional sin duplicados y con validación de miembros.
+- Construcción correcta de la imagen Docker con Node.js 20.
 
 ## Fase 4: Fundamentos del sistema de diseño
 

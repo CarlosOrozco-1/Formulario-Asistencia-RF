@@ -20,17 +20,23 @@ El sistema utiliza un **monolito modular cliente-servidor organizado por capas**
 Esta decisión mantiene una operación sencilla con Docker y SQLite, pero permite probar y
 evolucionar cada módulo sin introducir la complejidad operativa de microservicios.
 
-## Situación actual y arquitectura objetivo
+## Situación actual
 
-Actualmente el repositorio ya es un monolito modular, pero la separación por capas es parcial:
+El backend implementa el monolito modular por capas definido en este documento:
 
-- Las rutas Express reciben solicitudes, validan datos y ejecutan SQL directamente.
-- Los componentes React mezclan carga de datos, estado, navegación y presentación.
+- `server/index.js` inicia el proceso y `server/app.js` compone Express.
+- La configuración se valida en `server/config/` y se inyecta en los módulos.
+- Cada dominio contiene rutas, controladores, servicios y repositorios.
+- El SQL y las transacciones se encuentran exclusivamente en repositorios.
+- Los adaptadores técnicos, como PDF, se encuentran en `server/infrastructure/`.
+
+La separación del frontend continúa en evolución:
+
+- Los componentes React todavía mezclan carga de datos, estado, navegación y presentación.
 - Existe un servicio HTTP común, pero todavía no hay componentes de UI compartidos.
 - La navegación principal utiliza el hash de la URL y las subvistas usan estado local.
 
-La refactorización no cambiará el tipo de arquitectura. Su objetivo es completar la separación
-de responsabilidades dentro del mismo monolito.
+Las siguientes fases completarán las fronteras del frontend sin cambiar el tipo de arquitectura.
 
 ```text
 ┌────────────────────────── Aplicación desplegable ──────────────────────────┐
@@ -148,8 +154,9 @@ server/
 ├── app.js
 ├── config/
 ├── database/
+├── infrastructure/
 ├── middleware/
-├── shared/
+├── utils/
 └── modules/
     ├── auth/
     │   ├── auth.routes.js

@@ -21,6 +21,19 @@ Las operaciones de escritura conservan este cuerpo:
 
 El campo `id` aparece únicamente cuando se crea un registro.
 
+El reemplazo completo de asistencia de un grupo devuelve el total persistido:
+
+```json
+{
+    "success": true,
+    "total": 12
+}
+```
+
+`PUT /api/asistencias/grupos/:grupoId` recibe una fecha y exactamente un estado por cada
+miembro activo del grupo. La eliminación de registros anteriores y la inserción de la nueva
+lista ocurren dentro de una sola transacción.
+
 ## Respuestas de error
 
 Todo error utiliza la misma estructura:

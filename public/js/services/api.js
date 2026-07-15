@@ -119,6 +119,10 @@ window.api = {
     createAsistencia: function(data) { return this.request('POST', '/asistencias', data); },
     updateAsistencia: function(id, data) { return this.request('PUT', '/asistencias/' + id, data); },
     deleteAsistencia: function(id) { return this.request('DELETE', '/asistencias/' + id); },
+    // Guarda la lista completa del grupo como una sola operación transaccional.
+    saveAsistenciaGrupo: function(grupoId, data) {
+        return this.request('PUT', '/asistencias/grupos/' + grupoId, data);
+    },
     getResumen: function() { return this.request('GET', '/asistencias/resumen'); },
 
     // Miembros

@@ -379,25 +379,14 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
     // Guarda la asistencia del dia
     const handleGuardar = async () => {
         try {
-            // Primero elimina las asistencias existentes para esta fecha y grupo
-            const existentes = asistencias.filter(a => {
-                const miembro = miembros.find(m => m.id === a.miembro_id);
-                return miembro && miembro.grupo_id === grupo.id;
-            });
-            for (const a of existentes) {
-                await api.deleteAsistencia(a.id);
-            }
-            // Luego crea las nuevas asistencias
-            for (const miembro of miembros) {
-                const estado = estados[miembro.id] || 'ausente';
-                await api.createAsistencia({
+            // Envía la lista completa para que el servidor la reemplace sin estados parciales.
+            await api.saveAsistenciaGrupo(grupo.id, {
+                fecha,
+                asistencias: miembros.map(miembro => ({
                     miembro_id: miembro.id,
-                    fecha: fecha,
-                    tipo: 'discipulado',
-                    estado: estado,
-                    grupo_id: grupo.id
-                });
-            }
+                    estado: estados[miembro.id] || 'ausente'
+                }))
+            });
             alert('Asistencia guardada correctamente');
             onBack();
         } catch (error) {

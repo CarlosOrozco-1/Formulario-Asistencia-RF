@@ -113,6 +113,21 @@
                     "response": []
                 },
                 {
+                    "name": "Guardar Asistencia Completa del Grupo",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fecha\": \"2026-07-15\",\n    \"asistencias\": [\n        {\n            \"miembro_id\": 1,\n            \"estado\": \"presente\"\n        }\n    ]\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/asistencias/grupos/1",
+                        "description": "Reemplaza atómicamente la asistencia de los miembros activos del grupo y la fecha."
+                    },
+                    "response": []
+                },
+                {
                     "name": "Actualizar Asistencia",
                     "request": {
                         "method": "PUT",
