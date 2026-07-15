@@ -100,39 +100,47 @@ function VistaListaUsuarios({ usuarios, setUsuarios, usuario }) {
         e.preventDefault();
         if (!username.trim() || !nombre.trim()) return;
 
-        if (editId) {
-            // Actualiza usuario existente (sin password)
-            await api.updateUsuario(editId, { nombre: nombre.trim(), rol });
-            if (password.trim()) {
-                await api.updatePassword(editId, { password: password.trim() });
-            }
-            // Refresca la lista
-            const data = await api.getUsuarios();
-            setUsuarios(data || []);
-        } else {
-            // Crea nuevo usuario
-            if (!password.trim()) { alert('La contrasena es requerida'); return; }
-            const res = await api.createUsuario({
-                username: username.trim(),
-                password: password.trim(),
-                nombre: nombre.trim(),
-                rol
-            });
-            if (res.success) {
+        try {
+            if (editId) {
+                // Actualiza usuario existente (sin password)
+                await api.updateUsuario(editId, { nombre: nombre.trim(), rol });
+                if (password.trim()) {
+                    await api.updatePassword(editId, { password: password.trim() });
+                }
                 // Refresca la lista
                 const data = await api.getUsuarios();
                 setUsuarios(data || []);
+            } else {
+                // Crea nuevo usuario
+                if (!password.trim()) { alert('La contrasena es requerida'); return; }
+                await api.createUsuario({
+                    username: username.trim(),
+                    password: password.trim(),
+                    nombre: nombre.trim(),
+                    rol
+                });
+                // Refresca la lista después de confirmar la creación.
+                const data = await api.getUsuarios();
+                setUsuarios(data || []);
             }
+            resetForm();
+        } catch (error) {
+            // Mantiene el formulario abierto y presenta el mensaje contractual de la API.
+            alert(api.getErrorMessage(error));
         }
-        resetForm();
     };
 
     // Desactiva un usuario
     const handleDelete = async (id) => {
         if (!confirm('¿Desactivar este usuario?')) return;
-        await api.deleteUsuario(id);
-        const data = await api.getUsuarios();
-        setUsuarios(data || []);
+        try {
+            await api.deleteUsuario(id);
+            const data = await api.getUsuarios();
+            setUsuarios(data || []);
+        } catch (error) {
+            // Conserva la fila cuando el servidor no confirmó la desactivación.
+            alert(api.getErrorMessage(error));
+        }
     };
 
     return (

@@ -23,7 +23,7 @@ y documentado.
 |---|---|---|---|
 | 0 | Línea base y definición arquitectónica | Completada | Ninguna |
 | 1 | Estabilización crítica | Completada | Fase 0 |
-| 2 | Contratos HTTP y manejo de errores | Pendiente | Fase 1 |
+| 2 | Contratos HTTP y manejo de errores | Completada | Fase 1 |
 | 3 | Separación por capas del backend | Pendiente | Fase 2 |
 | 4 | Fundamentos del sistema de diseño | Pendiente | Fase 1 |
 | 5 | Shell, navegación y sesión del frontend | Pendiente | Fases 2 y 4 |
@@ -130,6 +130,29 @@ Hacer predecible la comunicación entre frontend y backend antes de extraer las 
 - El frontend diferencia validación, falta de permisos, sesión vencida y fallo de conexión.
 - Los errores internos no exponen SQL, rutas del servidor ni información sensible.
 - La colección Postman cubre respuestas exitosas y errores representativos.
+
+### Resultado de implementación
+
+- Se definió `HttpError` como error controlado con estado, código y detalles.
+- Se agregó middleware central para errores, JSON inválido y rutas API inexistentes.
+- Se normalizaron conflictos únicos y de relaciones provenientes de SQLite.
+- Todos los cuerpos, parámetros y filtros de los endpoints actuales tienen validación.
+- Las creaciones responden `201` y los recursos inexistentes responden `404`.
+- Las solicitudes vacías, fechas imposibles, enumeraciones e identificadores se rechazan.
+- El cliente HTTP produce `ApiError` y diferencia HTTP, red y respuesta inválida.
+- Los formularios CRUD conservan sus datos cuando una operación es rechazada.
+- Se corrigió la persistencia de `grupo_id` en asistencias de discipulado.
+- La edición parcial de usuarios conserva el campo `activo` cuando se omite.
+- Postman documenta treinta solicitudes y guarda automáticamente el JWT del login.
+
+### Evidencia de verificación
+
+- Comprobación de sintaxis de rutas, middleware, utilidades y componentes modificados.
+- Pruebas aisladas del cliente para éxito, validación y desconexión.
+- Construcción correcta de la imagen Docker con Node.js 20.
+- Pruebas integradas de estados `201`, `400`, `401`, `403`, `404` y `409`.
+- Pruebas de JSON inválido, fecha imposible, duplicado y conflicto de clave foránea.
+- Verificación de que `grupo_id` se guarda y que una edición preserva `activo`.
 
 ## Fase 3: Separación por capas del backend
 

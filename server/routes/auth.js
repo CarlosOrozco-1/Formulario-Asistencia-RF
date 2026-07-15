@@ -7,6 +7,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 // Reutiliza la validación JWT para confirmar la sesión antes de devolver la identidad.
 const { verificarToken } = require("../middleware/auth");
+// Estandariza fallos de sesión y credenciales con el contrato HTTP compartido.
+const { HttpError } = require("../utils/http-error");
+// Normaliza credenciales antes de consultar usuarios o calcular hashes.
+const { validarTexto } = require("../utils/validation");
 const router = Router();
 
 // Secreto JWT: debe definirse en la variable de entorno JWT_SECRET.
@@ -27,7 +31,7 @@ router.get("/me", verificarToken, (req, res) => {
 
   // Invalida la sesión cuando el usuario del token ya no puede acceder al sistema.
   if (!usuario) {
-    return res.status(401).json({ error: "La sesión ya no está disponible" });
+    throw new HttpError(401, "SESSION_UNAVAILABLE", "La sesión ya no está disponible");
   }
 
   // Entrega únicamente los datos necesarios para reconstruir el estado del frontend.
@@ -36,15 +40,19 @@ router.get("/me", verificarToken, (req, res) => {
 
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: "Usuario y contraseña requeridos" });
-  }
+  // Rechaza credenciales vacías o excesivas antes de ejecutar la consulta de autenticación.
+  const usernameNormalizado = validarTexto(username, "username", { required: true, max: 80 });
+  const passwordNormalizado = validarTexto(password, "password", {
+    required: true,
+    max: 200,
+    trim: false,
+  });
   const db = req.app.locals.db;
   const row = db
     .prepare("SELECT * FROM usuarios WHERE username = ? AND activo = 1")
-    .get(username);
-  if (!row || !bcrypt.compareSync(password, row.password_hash)) {
-    return res.status(401).json({ error: "Credenciales inválidas" });
+    .get(usernameNormalizado);
+  if (!row || !bcrypt.compareSync(passwordNormalizado, row.password_hash)) {
+    throw new HttpError(401, "INVALID_CREDENTIALS", "Las credenciales son inválidas");
   }
   db.prepare("UPDATE usuarios SET ultimo_acceso = ? WHERE id = ?").run(
     new Date().toISOString(),

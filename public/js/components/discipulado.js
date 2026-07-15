@@ -109,21 +109,32 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
     const handleCreate = async (e) => {
         e.preventDefault();
         if (!nombre.trim()) return;
-        const res = await api.createGrupo({ nombre: nombre.trim(), lugar: lugar.trim() || null });
-        if (res.success) {
+        try {
+            const res = await api.createGrupo({
+                nombre: nombre.trim(),
+                lugar: lugar.trim() || null
+            });
             const newGrupo = { id: res.id, nombre: nombre.trim(), lugar: lugar.trim() || null, miembros_count: 0 };
             setGrupos([...grupos, newGrupo]);
             setNombre('');
             setLugar('');
             setShowForm(false);
+        } catch (error) {
+            // Mantiene el formulario abierto y explica el rechazo recibido desde la API.
+            alert(api.getErrorMessage(error));
         }
     };
 
     // Elimina (desactiva) un grupo
     const handleDelete = async (id) => {
         if (!confirm('¿Eliminar este grupo? Los integrantes no se perderan.')) return;
-        await api.deleteGrupo(id);
-        setGrupos(grupos.filter(g => g.id !== id));
+        try {
+            await api.deleteGrupo(id);
+            setGrupos(grupos.filter(g => g.id !== id));
+        } catch (error) {
+            // Evita retirar visualmente un grupo cuando el servidor rechazó la eliminación.
+            alert(api.getErrorMessage(error));
+        }
     };
 
     return (
@@ -228,19 +239,31 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
     const handleAdd = async (e) => {
         e.preventDefault();
         if (!nombre.trim()) return;
-        const res = await api.createMiembro({ nombre: nombre.trim(), tipo: 'discipulado', grupo_id: grupo.id });
-        if (res.success) {
+        try {
+            const res = await api.createMiembro({
+                nombre: nombre.trim(),
+                tipo: 'discipulado',
+                grupo_id: grupo.id
+            });
             setMiembros([...miembros, { id: res.id, nombre: nombre.trim(), tipo: 'discipulado', grupo_id: grupo.id, activo: 1 }]);
             setNombre('');
             setShowForm(false);
+        } catch (error) {
+            // Conserva la captura del integrante cuando la API devuelve validación o conflicto.
+            alert(api.getErrorMessage(error));
         }
     };
 
     // Elimina un integrante del grupo
     const handleRemove = async (id) => {
         if (!confirm('¿Eliminar este integrante?')) return;
-        await api.deleteMiembro(id);
-        setMiembros(miembros.filter(m => m.id !== id));
+        try {
+            await api.deleteMiembro(id);
+            setMiembros(miembros.filter(m => m.id !== id));
+        } catch (error) {
+            // Mantiene el integrante visible si existen relaciones que impiden eliminarlo.
+            alert(api.getErrorMessage(error));
+        }
     };
 
     return (
@@ -355,27 +378,32 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
 
     // Guarda la asistencia del dia
     const handleGuardar = async () => {
-        // Primero elimina las asistencias existentes para esta fecha y grupo
-        const existentes = asistencias.filter(a => {
-            const miembro = miembros.find(m => m.id === a.miembro_id);
-            return miembro && miembro.grupo_id === grupo.id;
-        });
-        for (const a of existentes) {
-            await api.deleteAsistencia(a.id);
-        }
-        // Luego crea las nuevas asistencias
-        for (const miembro of miembros) {
-            const estado = estados[miembro.id] || 'ausente';
-            await api.createAsistencia({
-                miembro_id: miembro.id,
-                fecha: fecha,
-                tipo: 'discipulado',
-                estado: estado,
-                grupo_id: grupo.id
+        try {
+            // Primero elimina las asistencias existentes para esta fecha y grupo
+            const existentes = asistencias.filter(a => {
+                const miembro = miembros.find(m => m.id === a.miembro_id);
+                return miembro && miembro.grupo_id === grupo.id;
             });
+            for (const a of existentes) {
+                await api.deleteAsistencia(a.id);
+            }
+            // Luego crea las nuevas asistencias
+            for (const miembro of miembros) {
+                const estado = estados[miembro.id] || 'ausente';
+                await api.createAsistencia({
+                    miembro_id: miembro.id,
+                    fecha: fecha,
+                    tipo: 'discipulado',
+                    estado: estado,
+                    grupo_id: grupo.id
+                });
+            }
+            alert('Asistencia guardada correctamente');
+            onBack();
+        } catch (error) {
+            // Informa el fallo sin afirmar que el registro completo fue guardado.
+            alert(api.getErrorMessage(error));
         }
-        alert('Asistencia guardada correctamente');
-        onBack();
     };
 
     // Icono segun el estado de asistencia

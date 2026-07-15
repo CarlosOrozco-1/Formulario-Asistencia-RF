@@ -20,6 +20,17 @@ const gruposRoutes = require("./routes/grupos");
 const categoriasRoutes = require("./routes/categorias");
 const puebloRoutes = require("./routes/pueblo");
 const { verificarToken } = require("./middleware/auth");
+// Centraliza errores y rutas API inexistentes para mantener un único contrato JSON.
+const { manejarErrores, rutaNoEncontrada } = require("./middleware/error");
+// Expresa recursos inexistentes sin construir respuestas ad hoc en el endpoint público.
+const { HttpError } = require("./utils/http-error");
+// Valida el endpoint público antes de permitir escrituras directas en la base de datos.
+const {
+  validarEntero,
+  validarFecha,
+  validarId,
+  validarTexto,
+} = require("./utils/validation");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,8 +54,21 @@ app.use("/api/auth", authRoutes);
 app.post("/api/publico/pueblo/asistencia", (req, res) => {
   const db = req.app.locals.db;
   const { categoria_id, fecha, cantidad, servicio } = req.body;
-  if (!categoria_id || !fecha) {
-    return res.status(400).json({ error: "Categoria y fecha son requeridas" });
+  // Normaliza el cuerpo para rechazar referencias, fechas y cantidades inválidas.
+  const categoriaId = validarId(categoria_id, "categoria_id");
+  const fechaNormalizada = validarFecha(fecha, "fecha", true);
+  const cantidadNormalizada = validarEntero(cantidad ?? 1, "cantidad", {
+    required: true,
+    min: 1,
+    max: 100000,
+  });
+  const servicioNormalizado = validarTexto(servicio, "servicio", { max: 80 });
+  // Impide registrar asistencia en una categoría inexistente o desactivada.
+  const categoriaActiva = db
+    .prepare("SELECT id FROM categorias WHERE id = ? AND activo = 1")
+    .get(categoriaId);
+  if (!categoriaActiva) {
+    throw new HttpError(404, "CATEGORY_NOT_FOUND", "La categoría indicada no está disponible");
   }
   const result = db
     .prepare(
@@ -53,8 +77,8 @@ app.post("/api/publico/pueblo/asistencia", (req, res) => {
         VALUES (?, ?, 'pueblo', ?, ?)
     `,
     )
-    .run(categoria_id, fecha, cantidad || 1, servicio || null);
-  res.json({ success: true, id: result.lastInsertRowid });
+    .run(categoriaId, fechaNormalizada, cantidadNormalizada, servicioNormalizado);
+  return res.status(201).json({ success: true, id: result.lastInsertRowid });
 });
 
 // Rutas protegidas (requieren JWT valido)
@@ -64,6 +88,11 @@ app.use("/api/miembros", verificarToken, miembrosRoutes);
 app.use("/api/grupos", verificarToken, gruposRoutes);
 app.use("/api/categorias", verificarToken, categoriasRoutes);
 app.use("/api/pueblo", verificarToken, puebloRoutes);
+
+// Responde las URLs de API desconocidas antes de delegar al manejador central.
+app.use("/api", rutaNoEncontrada);
+// Mantiene el middleware de errores al final para capturar fallos de todas las rutas.
+app.use(manejarErrores);
 
 // Inicia el servidor en el puerto configurado
 app.listen(PORT, "0.0.0.0", () => {

@@ -1,279 +1,482 @@
 {
-	"info": {
-		"_postman_id": "7d9c6b12-9c3a-4e8b-b1a3-c5d6e7f8g9h0",
-		"name": "Sistema de Asistencia Monte Carmelo",
-		"description": "Colección de endpoints para el sistema de asistencia",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Autenticación",
-			"item": [
-				{
-					"name": "Login",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/auth/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"auth",
-								"login"
-							]
-						}
-					},
-						"response": []
-					},
-					{
-						"name": "Restaurar Sesión",
-						"request": {
-							"method": "GET",
-							"header": [],
-							"description": "Valida el JWT y devuelve el usuario activo de la sesión.",
-							"url": {
-								"raw": "{{base_url}}/api/auth/me",
-								"host": [
-									"{{base_url}}"
-								],
-								"path": [
-									"api",
-									"auth",
-									"me"
-								]
-							}
-						},
-						"response": []
-					}
-				]
-		},
-		{
-			"name": "Público",
-			"item": [
-				{
-					"name": "Registrar Asistencia Pueblo",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"categoria_id\": 1,\n    \"fecha\": \"2026-07-14\",\n    \"cantidad\": 5,\n    \"servicio\": \"Matutino\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/publico/pueblo/asistencia",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"publico",
-								"pueblo",
-								"asistencia"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Asistencias",
-			"item": [
-				{
-					"name": "Listar Asistencias",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/asistencias?fecha=2026-07-14",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"asistencias"
-							],
-							"query": [
-								{
-									"key": "fecha",
-									"value": "2026-07-14"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Obtener Resumen Dashboard",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/asistencias/resumen",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"asistencias",
-								"resumen"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Usuarios",
-			"item": [
-				{
-					"name": "Listar Usuarios",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/usuarios",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"usuarios"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Miembros",
-			"item": [
-				{
-					"name": "Listar Miembros",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/miembros",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"miembros"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Grupos",
-			"item": [
-				{
-					"name": "Listar Grupos",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/grupos",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"grupos"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Categorías",
-			"item": [
-				{
-					"name": "Listar Categorías",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/categorias",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"categorias"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{jwt_token}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:3000",
-			"type": "string"
-		},
-		{
-			"key": "jwt_token",
-			"value": "",
-			"type": "string"
-		}
-	]
+    "info": {
+        "_postman_id": "7d9c6b12-9c3a-4e8b-b1a3-c5d6e7f8g9h0",
+        "name": "Sistema de Asistencia Monte Carmelo",
+        "description": "API REST del sistema. Los errores usan { error: { code, message, details } }. Los POST de creación responden 201; validación 400; autenticación 401; permisos 403; recursos ausentes 404; conflictos 409.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Autenticación",
+            "item": [
+                {
+                    "name": "Login",
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/auth/login",
+                        "description": "Devuelve token y usuario. Credenciales inválidas responden INVALID_CREDENTIALS."
+                    },
+                    "event": [{
+                        "listen": "test",
+                        "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                                "if (pm.response.code === 200) {",
+                                "    pm.collectionVariables.set('jwt_token', pm.response.json().token);",
+                                "}"
+                            ]
+                        }
+                    }],
+                    "response": []
+                },
+                {
+                    "name": "Restaurar Sesión",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/auth/me",
+                        "description": "Valida el JWT y devuelve el usuario activo de la sesión."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Público",
+            "item": [
+                {
+                    "name": "Registrar Asistencia Pueblo",
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"categoria_id\": 1,\n    \"fecha\": \"2026-07-15\",\n    \"cantidad\": 5,\n    \"servicio\": \"Primer\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/publico/pueblo/asistencia",
+                        "description": "Crea un registro público y responde 201. Valida categoría activa, fecha y cantidad."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Asistencias",
+            "item": [
+                {
+                    "name": "Listar Asistencias",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/asistencias?fecha=2026-07-15&tipo=discipulado&miembro_id=1",
+                        "description": "Filtros opcionales: fecha YYYY-MM-DD, tipo y miembro_id positivo."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Asistencia Discipulado",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"miembro_id\": 1,\n    \"grupo_id\": 1,\n    \"fecha\": \"2026-07-15\",\n    \"tipo\": \"discipulado\",\n    \"estado\": \"presente\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/asistencias",
+                        "description": "Responde 201. Discipulado requiere miembro_id y estado."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Asistencia Pueblo",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"categoria_id\": 1,\n    \"fecha\": \"2026-07-15\",\n    \"tipo\": \"pueblo\",\n    \"cantidad\": 10,\n    \"servicio\": \"Primer\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/asistencias",
+                        "description": "Responde 201. Pueblo requiere categoria_id y cantidad positiva."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Asistencia",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"estado\": \"reportado\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/asistencias/1",
+                        "description": "Acepta estado, cantidad, servicio o grupo_servidores."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Eliminar Asistencia",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": "{{base_url}}/api/asistencias/1"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Obtener Resumen Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/asistencias/resumen"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Usuarios",
+            "item": [
+                {
+                    "name": "Listar Usuarios",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/usuarios",
+                        "description": "Solo administrador."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Usuario",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"usuario\",\n    \"password\": \"password123\",\n    \"nombre\": \"Usuario Ejemplo\",\n    \"rol\": \"user\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/usuarios",
+                        "description": "Responde 201. Username duplicado responde RESOURCE_CONFLICT."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Usuario",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Nombre Actualizado\",\n    \"rol\": \"user\",\n    \"activo\": true\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/usuarios/1"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cambiar Contraseña",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"nuevaPassword123\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/usuarios/1/password",
+                        "description": "Requiere al menos 8 caracteres."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Desactivar Usuario",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": "{{base_url}}/api/usuarios/1"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Miembros",
+            "item": [
+                {
+                    "name": "Listar Miembros",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/miembros?tipo=discipulado&grupo_id=1&activo=1",
+                        "description": "Filtros opcionales validados: tipo, grupo_id y activo."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Miembro",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Miembro Ejemplo\",\n    \"tipo\": \"discipulado\",\n    \"grupo_id\": 1\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/miembros",
+                        "description": "Responde 201."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Miembro",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Nombre Actualizado\",\n    \"grupo_id\": 1,\n    \"activo\": true,\n    \"orden\": 1\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/miembros/1"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Eliminar Miembro",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": "{{base_url}}/api/miembros/1"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Grupos",
+            "item": [
+                {
+                    "name": "Listar Grupos",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/grupos"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Grupo",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Discipulado 1\",\n    \"lugar\": \"Salón principal\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/grupos",
+                        "description": "Responde 201."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Grupo",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Discipulado Actualizado\",\n    \"lugar\": \"Sala 2\",\n    \"orden\": 1\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/grupos/1"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Eliminar Grupo",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": "{{base_url}}/api/grupos/1"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Categorías",
+            "item": [
+                {
+                    "name": "Listar Categorías",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/categorias"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Categoría",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Danza\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/categorias",
+                        "description": "Responde 201. Nombre duplicado responde RESOURCE_CONFLICT."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Categoría",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Danza General\",\n    \"activo\": true\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/categorias/1"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Desactivar Categoría",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": "{{base_url}}/api/categorias/1"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Pueblo",
+            "item": [
+                {
+                    "name": "Registrar Asistencia Protegida",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"categoria_id\": 1,\n    \"fecha\": \"2026-07-15\",\n    \"cantidad\": 8,\n    \"servicio\": \"Segundo\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/pueblo/asistencia",
+                        "description": "Crea el registro protegido y responde 201."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Consultar Reportes",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/pueblo/reportes?fecha=2026-07-15&categoria_id=1",
+                        "description": "Fecha y categoria_id son filtros opcionales validados."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Contrato HTTP",
+            "item": [
+                {
+                    "name": "Ruta API Inexistente",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/api/ruta-inexistente",
+                        "description": "Debe responder 404 con code NOT_FOUND y el contrato de error estándar."
+                    },
+                    "event": [{
+                        "listen": "test",
+                        "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                                "pm.test('Contrato 404', function () {",
+                                "    pm.response.to.have.status(404);",
+                                "    pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                                "});"
+                            ]
+                        }
+                    }],
+                    "response": []
+                },
+                {
+                    "name": "Ejemplo de Validación",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": "{{base_url}}/api/grupos",
+                        "description": "Debe responder 400 con code VALIDATION_ERROR y details por campo."
+                    },
+                    "event": [{
+                        "listen": "test",
+                        "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                                "pm.test('Contrato de validación', function () {",
+                                "    const error = pm.response.json().error;",
+                                "    pm.response.to.have.status(400);",
+                                "    pm.expect(error.code).to.eql('VALIDATION_ERROR');",
+                                "    pm.expect(error.details).to.be.an('array').that.is.not.empty;",
+                                "});"
+                            ]
+                        }
+                    }],
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [{
+            "key": "token",
+            "value": "{{jwt_token}}",
+            "type": "string"
+        }]
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "jwt_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
 }

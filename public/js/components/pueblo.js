@@ -1,5 +1,5 @@
-// Componente Pueblo - Gestion de categorias, asistencia publica y reportes
-// Permite registrar asistencia (publico sin login) y ver reportes (autenticado)
+// Componente Pueblo - Gestion autenticada de categorias, asistencia y reportes
+// El formulario público utiliza un endpoint independiente y no depende de este componente
 const { useState, useEffect } = React;
 const { api, helpers } = window;
 
@@ -87,21 +87,27 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
     const handleCreate = async (e) => {
         e.preventDefault();
         if (!nombre.trim()) return;
-        const res = await api.createCategoria({ nombre: nombre.trim() });
-        if (res.success) {
+        try {
+            const res = await api.createCategoria({ nombre: nombre.trim() });
             setCategorias([...categorias, { id: res.id, nombre: nombre.trim(), activo: 1 }]);
             setNombre('');
             setShowForm(false);
-        } else {
-            alert(res.error || 'Error al crear categoria');
+        } catch (error) {
+            // Conserva el formulario para corregir validación o un nombre duplicado.
+            alert(api.getErrorMessage(error));
         }
     };
 
     // Elimina una categoria
     const handleDelete = async (id) => {
         if (!confirm('¿Eliminar esta categoria?')) return;
-        await api.deleteCategoria(id);
-        setCategorias(categorias.filter(c => c.id !== id));
+        try {
+            await api.deleteCategoria(id);
+            setCategorias(categorias.filter(c => c.id !== id));
+        } catch (error) {
+            // Evita ocultar la categoría cuando el servidor no confirmó la operación.
+            alert(api.getErrorMessage(error));
+        }
     };
 
     return (
@@ -196,20 +202,22 @@ function VistaAsistenciaPueblo({ categorias, fecha, setFecha, usuario, onBack })
             return;
         }
         setGuardando(true);
-        const res = await api.createAsistencia({
-            categoria_id: parseInt(categoriaId),
-            fecha: fecha,
-            tipo: 'pueblo',
-            cantidad: parseInt(cantidad),
-            servicio: servicio
-        });
-        setGuardando(false);
-        if (res.success) {
+        try {
+            await api.createAsistencia({
+                categoria_id: parseInt(categoriaId),
+                fecha: fecha,
+                tipo: 'pueblo',
+                cantidad: parseInt(cantidad),
+                servicio: servicio
+            });
             alert('Asistencia registrada correctamente');
             setCantidad(1);
             setCategoriaId('');
-        } else {
-            alert('Error al registrar asistencia');
+        } catch (error) {
+            // Muestra el motivo del rechazo y mantiene los valores capturados para corregirlos.
+            alert(api.getErrorMessage(error));
+        } finally {
+            setGuardando(false);
         }
     };
 
@@ -294,9 +302,15 @@ function VistaReportesPueblo({ categorias, onBack }) {
         const params = {};
         if (fechaFiltro) params.fecha = fechaFiltro;
         if (categoriaFiltro) params.categoria_id = categoriaFiltro;
-        const data = await api.getReportesPueblo(params);
-        setReportes(data || []);
-        setLoading(false);
+        try {
+            const data = await api.getReportesPueblo(params);
+            setReportes(data || []);
+        } catch (error) {
+            // Diferencia filtros inválidos y desconexión sin dejar la vista cargando.
+            alert(api.getErrorMessage(error));
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

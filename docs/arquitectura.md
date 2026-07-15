@@ -209,6 +209,7 @@ El cliente HTTP debe:
 - permitir cancelar solicitudes cuando una vista deja de estar activa.
 
 Toda modificación de endpoints debe reflejarse en `postman/asistencia_api.json`.
+La definición detallada de códigos y validaciones se mantiene en `docs/api-contract.md`.
 
 ## Autenticación y autorización
 

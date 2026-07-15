@@ -23,7 +23,8 @@ window.LoginComponent = function ({ onLogin, mensajeInicial = "" }) {
         setError(res.error || "Error al iniciar sesion");
       }
     } catch (err) {
-      setError("Error de conexion con el servidor");
+      // Distingue credenciales, validación y conexión usando el contrato del cliente HTTP.
+      setError(err.message || "Error al iniciar sesión");
     }
     setLoading(false);
   };
