@@ -86,6 +86,10 @@ Este documento establece las reglas básicas para escribir y mantener el código
 - Usar jsPDF con el plugin autoTable para generar reportes
 - Incluir fecha del reporte en el nombre del archivo
 
+### 9. Documentación de API (Postman)
+- Todo nuevo endpoint o modificación de uno existente debe ser reflejado en el archivo `postman/asistencia_api.json`
+- Mantener ejemplos de body y query params actualizados
+
 ## Proceso de desarrollo
 
 1. **Antes de modificar**: Leer el archivo AGENTS.md
