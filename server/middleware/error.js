@@ -2,6 +2,7 @@
  * Middleware central para responder errores de API sin exponer detalles internos.
  */
 const { HttpError } = require('../utils/http-error');
+const { registrarError } = require('../utils/logger');
 
 // Convierte cualquier ruta API desconocida en una respuesta JSON predecible.
 const rutaNoEncontrada = (req, res, next) => {
@@ -33,7 +34,13 @@ const normalizarError = (error) => {
 // Emite el contrato oficial y registra únicamente los fallos inesperados para diagnóstico.
 const manejarErrores = (error, req, res, next) => {
     const normalized = normalizarError(error);
-    if (normalized.status >= 500) console.error(error);
+    if (normalized.status >= 500) {
+        registrarError('Error interno del servidor', {
+            code: normalized.code,
+            status: normalized.status,
+            path: req?.path
+        });
+    }
 
     return res.status(normalized.status).json({
         error: {

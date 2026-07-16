@@ -78,6 +78,16 @@ test('la API protege rutas, acepta escrituras y publica métricas del tablero', 
         db.close();
     });
 
+    // Verifica que el healthcheck y las cabeceras defensivas estén disponibles desde el arranque.
+    const healthResponse = await requestJson(app, '/healthz');
+    assert.equal(healthResponse.response.statusCode, 200);
+    assert.equal(healthResponse.body.status, 'ok');
+    assert.equal(healthResponse.body.database, 'ok');
+    assert.equal(
+        healthResponse.response.getHeader('x-content-type-options'),
+        'nosniff'
+    );
+
     // Inicia sesión como administrador para obtener un JWT utilizable en el resto del flujo.
     const loginAdmin = await requestJson(app, '/api/auth/login', {
         method: 'POST',

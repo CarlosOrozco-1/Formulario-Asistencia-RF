@@ -252,6 +252,21 @@ La arquitectura incluye una capa de verificación para proteger los contratos de
 Este enfoque permite validar la arquitectura por contrato sin acoplar la verificación a una
 infraestructura externa ni a datos persistentes reales.
 
+## Seguridad y operación
+
+La capa operativa del sistema aplica controles básicos para reducir exposición y facilitar el
+despliegue:
+
+- Las cabeceras defensivas se agregan en el servidor para mitigar abuso del navegador.
+- CORS se restringe a orígenes explícitos cuando se necesita consumo cruzado.
+- Los endpoints expuestos al público tienen limitación básica de frecuencia por IP.
+- `GET /healthz` expone un healthcheck sin autenticación para Docker y balanceadores.
+- La base SQLite puede ubicarse mediante `DB_PATH` para respaldos y volúmenes persistentes.
+- El servidor emite eventos operativos estructurados para inicio, apagado y errores internos.
+- `server/index.js` cierra el proceso de forma limpia ante `SIGINT` y `SIGTERM`.
+- La imagen Docker ejecuta el servidor como usuario no privilegiado y declara healthcheck.
+- `docker-compose.yml` monta `./data` para conservar `asistencias.db` entre reinicios.
+
 ## Autenticación y autorización
 
 1. El usuario inicia sesión mediante `POST /api/auth/login`.

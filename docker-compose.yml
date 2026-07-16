@@ -12,5 +12,23 @@ services:
       - JWT_SECRET=${JWT_SECRET:-asistencia-rf-secret-2026}
       # Mantiene los resúmenes diarios alineados con la zona horaria institucional.
       - BUSINESS_TIME_ZONE=${BUSINESS_TIME_ZONE:-America/Mexico_City}
+      # Mantiene la base SQLite en un volumen persistente del host o del contenedor.
+      - DB_PATH=${DB_PATH:-/app/data/asistencias.db}
+      # Restringe el consumo cruzado de la API desde orígenes explícitos.
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      # Controla el tamaño máximo del JSON para reducir abuso por carga útil.
+      - JSON_BODY_LIMIT=${JSON_BODY_LIMIT:-1mb}
+      # Limita la frecuencia de intentos de autenticación por ventana de tiempo.
+      - AUTH_RATE_LIMIT_WINDOW_MS=${AUTH_RATE_LIMIT_WINDOW_MS:-60000}
+      - AUTH_RATE_LIMIT_MAX=${AUTH_RATE_LIMIT_MAX:-20}
+      # Limita la frecuencia de registros públicos por ventana de tiempo.
+      - PUBLIC_RATE_LIMIT_WINDOW_MS=${PUBLIC_RATE_LIMIT_WINDOW_MS:-60000}
+      - PUBLIC_RATE_LIMIT_MAX=${PUBLIC_RATE_LIMIT_MAX:-60}
       - PORT=3000
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3

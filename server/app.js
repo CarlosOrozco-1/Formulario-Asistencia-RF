@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { crearMiddlewareAuth } = require('./middleware/auth');
+const { crearMiddlewareSeguridad } = require('./middleware/security');
 const { manejarErrores, rutaNoEncontrada } = require('./middleware/error');
 const { crearAuthRouter } = require('./modules/auth/auth.routes');
 const {
@@ -25,13 +26,36 @@ const { crearUsuariosRouter } = require('./modules/usuarios/usuarios.routes');
 const crearApp = ({ db, config }) => {
     const app = express();
     const { verificarToken } = crearMiddlewareAuth(config.jwtSecret);
+    const seguridad = crearMiddlewareSeguridad(config);
 
     // Configura capacidades transversales antes de montar los módulos.
-    app.use(cors());
-    app.use(express.json());
+    app.disable('x-powered-by');
+    app.use(seguridad.establecerCabeceras);
+    app.use(cors({
+        origin: seguridad.permitirCors
+    }));
+    app.use(express.json({ limit: config.jsonBodyLimit }));
     app.use(express.static(path.join(__dirname, '..', 'public')));
 
+    // Expone un healthcheck sin autenticación para contenedores y balanceadores.
+    app.get('/healthz', (req, res, next) => {
+        try {
+            const database = db.prepare('SELECT 1 AS ok').get().ok === 1 ? 'ok' : 'error';
+            res.setHeader('Cache-Control', 'no-store');
+            res.json({
+                status: 'ok',
+                database,
+                uptime: Math.floor(process.uptime()),
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            next(error);
+        }
+    });
+
     // Monta rutas públicas de forma explícita para facilitar la auditoría de seguridad.
+    app.use('/api/auth/login', seguridad.limitarLogin);
+    app.use('/api/publico/pueblo/asistencia', seguridad.limitarPublico);
     app.use('/api/auth', crearAuthRouter({ db, config, verificarToken }));
     app.use('/api/publico/pueblo', crearPuebloPublicoRouter({ db }));
 

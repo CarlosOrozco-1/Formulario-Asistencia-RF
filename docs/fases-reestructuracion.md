@@ -30,7 +30,7 @@ y documentado.
 | 6 | Refactorización de módulos funcionales | Completada | Fases 3 y 5 |
 | 7 | Responsividad y accesibilidad | Completada | Fase 6 |
 | 8 | Pruebas y automatización de calidad | Completada | Fases 3 a 7 |
-| 9 | Seguridad, operación y documentación final | Pendiente | Fase 8 |
+| 9 | Seguridad, operación y documentación final | Completada | Fase 8 |
 
 ## Fase 0: Línea base y definición arquitectónica
 
@@ -441,6 +441,25 @@ Preparar la arquitectura corregida para una operación mantenible y una exposici
 - El procedimiento de respaldo y restauración está probado y documentado.
 - El contenedor expone una comprobación de salud útil.
 - La documentación refleja la implementación real.
+
+### Resultado de implementación
+
+- Se agregaron cabeceras defensivas, CORS restringido y `GET /healthz`.
+- Los endpoints públicos usan limitación básica por IP para reducir abuso.
+- Se añadió logging operativo estructurado para inicio, apagado y errores internos.
+- `server/index.js` cierra el servidor y la base al recibir `SIGINT` o `SIGTERM`.
+- `server/database/connection.js` acepta `DB_PATH` para respaldos y volúmenes persistentes.
+- `Dockerfile` ejecuta el servidor como usuario no privilegiado y define healthcheck.
+- `docker-compose.yml` monta `./data`, fija la ruta de la base y documenta límites de abuso.
+- `README.md` quedó alineado con la operación actual del sistema.
+- La fase quedó documentada en `docs/fases/fase-9-seguridad-operacion-documentacion-final.md`.
+
+### Evidencia de verificación
+
+- `npm run check` sobre el servidor.
+- `npm test` con el healthcheck y los contratos existentes.
+- `npm run verify` como puerta completa de validación.
+- Revisión del Dockerfile, `docker-compose.yml` y variables de entorno.
 
 ## Inventario inicial de riesgos
 

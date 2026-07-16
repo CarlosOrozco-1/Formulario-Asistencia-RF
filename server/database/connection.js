@@ -9,7 +9,11 @@ const path = require('path');
 const fs = require('fs');
 
 function conectarDB() {
-    const dbPath = path.join(__dirname, 'asistencias.db');
+    // Permite fijar la ruta de datos para contenedores y respaldos externos.
+    const dbPath = process.env.DB_PATH
+        ? path.resolve(process.cwd(), process.env.DB_PATH)
+        : path.join(__dirname, 'asistencias.db');
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
     const db = new Database(dbPath);
 
     // Habilitar WAL para mejor rendimiento

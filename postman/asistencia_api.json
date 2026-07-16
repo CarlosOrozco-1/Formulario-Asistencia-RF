@@ -49,6 +49,22 @@
             ]
         },
         {
+            "name": "Operación",
+            "item": [
+                {
+                    "name": "Healthcheck",
+                    "request": {
+                        "auth": { "type": "noauth" },
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{base_url}}/healthz",
+                        "description": "Confirma que la API, la base SQLite y el contenedor responden correctamente."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
             "name": "Público",
             "item": [
                 {

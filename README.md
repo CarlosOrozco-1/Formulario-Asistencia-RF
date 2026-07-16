@@ -1,76 +1,76 @@
 # Gestión de Asistencia
 
-Sistema de registro de asistencia para reuniones del discipulado y asistencia del pueblo.
+Sistema para registrar asistencias de Discipulado y Pueblo con API REST, SQLite y una interfaz
+servida por Express.
 
-## Características
+## Arquitectura
 
-- **Discipulado**: Registro de hermanos con estados (Presente/Reportado/Ausencia).
-- **Pueblo**: Registro por categorías (Alabanza, Danza, Cafetería, Pueblo en General, etc.).
-- **PDF**: Generación de reportes detallados y filtrados en PDF para compartir fácilmente.
-- **Persistencia centralizada**: Los datos se guardan en SQLite mediante el servidor Express.
+- Backend: Node.js + Express
+- Base de datos: SQLite con `better-sqlite3`
+- Autenticación: JWT con expiración de 24 horas
+- Interfaz: SPA estática servida desde `public/`
+- Despliegue: Docker y Docker Compose
 
-## Referencia visual
+La arquitectura oficial y las decisiones de diseño están documentadas en `docs/arquitectura.md`.
 
-El sistema de diseño puede revisarse en `/design-system.html` al ejecutar la aplicación. Sus
-decisiones y componentes están documentados en `docs/fases/fase-4-sistema-diseno.md`.
+## Requisitos locales
 
-## Estructura del Proyecto
+- Node.js 20 o superior
+- npm
 
-```
-/Asistencia-Discipulado
-├── index.html              # Estructura HTML y carga de librerías
-├── styles.css              # Estilos personalizados y variables de diseño
-├── app.js                  # Orquestador del enrutamiento y componente raíz <App />
-├── js/
-│   ├── constants.js        # Configuración inicial, constantes y datos estáticos
-│   ├── db.js               # Funciones de persistencia e infraestructura (SQLite)
-│   ├── discipulado-view.js # Vista e interactividad para la asistencia del Discipulado
-│   └── pueblo-view.js      # Vista e interactividad para la asistencia del Pueblo
-├── docs/
-│   └── refactorizacion.md  # Detalles del diseño arquitectónico de la refactorización
-├── README.md               # Descripción del proyecto
-└── AGENTS.md               # Reglas de desarrollo obligatorias
-```
+## Variables de entorno
 
-## Uso y Ejecución Local
+Las variables principales se describen en `server/.env.example`:
 
-Debido a que la aplicación está estructurada utilizando módulos de JavaScript (ES6 Modules)
-que cargan archivos de forma asíncrona, los navegadores bloquean el acceso a los archivos
-si se abre el archivo `index.html` haciendo doble clic desde el explorador de archivos (error CORS).
+- `PORT`
+- `JWT_SECRET`
+- `BUSINESS_TIME_ZONE`
+- `DB_PATH`
+- `CORS_ORIGINS`
+- `JSON_BODY_LIMIT`
+- `AUTH_RATE_LIMIT_WINDOW_MS`
+- `AUTH_RATE_LIMIT_MAX`
+- `PUBLIC_RATE_LIMIT_WINDOW_MS`
+- `PUBLIC_RATE_LIMIT_MAX`
 
-Para probar la aplicación localmente, debes servirla a través de un servidor HTTP local:
+## Ejecución local
 
-### Opción 1: Python (recomendada)
-Ejecuta el siguiente comando en la terminal desde el directorio del proyecto:
 ```bash
-python3 -m http.server 8081
+cd server
+npm install
+npm run verify
+npm start
 ```
-Luego, abre en tu navegador: `http://localhost:8081`
 
-### Opción 2: VS Code Live Server
-Instala la extensión "Live Server" en VS Code, haz clic derecho sobre `index.html` y selecciona 
-"Open with Live Server".
+La aplicación queda disponible en `http://localhost:3000`.
 
-## Compartir en GitHub Pages
+## Healthcheck
 
-1. Sube todos los archivos (incluyendo la carpeta `js/` y `docs/`) a tu repositorio en GitHub.
-2. Ve a Settings > Pages en el menú de configuración de tu repositorio.
-3. En la sección "Build and deployment", selecciona la rama `main` (o la que utilices) y guarda.
-4. GitHub Pages servirá la aplicación de forma estática sin necesidad de compilar ningún código.
+El servidor expone `GET /healthz` para validar disponibilidad y base de datos.
 
-## Requisitos
+## Docker
 
-- Navegador moderno (Chrome, Firefox, Safari, Edge).
-- Conexión a internet (para descargar las librerías necesarias desde la CDN en tiempo de ejecución).
+```bash
+docker compose up --build
+```
 
-## Tecnologías Usadas
+El contenedor usa `/app/data/asistencias.db` como ruta persistente de SQLite y expone el puerto
+`3000`.
 
-- React 18 (Interfaz de usuario y reactividad).
-- Tailwind CSS (Estilos y responsividad).
-- SQL.js (Base de datos SQLite embebida en el navegador).
-- jsPDF + autoTable (Generación dinámica de reportes en PDF).
-- Lucide (Iconos SVG).
+## Respaldo de datos
 
----
+- La base SQLite puede moverse mediante `DB_PATH`.
+- En Docker Compose, la ruta `./data` se monta como volumen persistente.
 
-Gestión de Asistencia - 2026
+## Documentación
+
+- `docs/arquitectura.md`
+- `docs/fases-reestructuracion.md`
+- `docs/refactorizacion.md`
+- `docs/fases/`
+
+## Verificación
+
+- `npm run check`
+- `npm test`
+- `npm run verify`

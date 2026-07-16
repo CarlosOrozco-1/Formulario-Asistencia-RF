@@ -115,6 +115,22 @@ Agregar una red de seguridad automatizada para validar los contratos críticos d
 - Se incorporaron los scripts `test`, `test:watch`, `check` y `verify` en el servidor.
 - Se documentó la fase en `docs/fases/fase-8-pruebas-automatizacion-calidad.md`.
 
+## Fase 9: Seguridad, operación y documentación final - Completada
+
+### Objetivo
+
+Preparar el sistema para operación mantenible, contenedores persistentes y verificación de salud.
+
+### Resultado
+
+- Se agregaron cabeceras defensivas, CORS restringido y control básico de abuso.
+- Se introdujo `GET /healthz` para Docker y balanceadores.
+- La base SQLite quedó configurable mediante `DB_PATH`.
+- Se agregó logging estructurado para eventos operativos y fallos internos.
+- El servidor se apaga de forma limpia ante señales del sistema.
+- El Dockerfile y `docker-compose.yml` fueron endurecidos y documentados.
+- Se sincronizó la documentación operativa del proyecto.
+
 ---
 
 ## Estructura Actual del Proyecto
