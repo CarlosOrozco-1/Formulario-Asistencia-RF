@@ -81,12 +81,40 @@ const crearAsistenciasRepository = (db) => ({
         return data.asistencias.length;
     }),
     getSummary: (fecha) => ({
+        // Conserva la métrica histórica de registros para no romper consumidores existentes.
         asistenciasHoy: db.prepare(
             'SELECT COUNT(*) AS total FROM asistencias WHERE fecha = ?'
         ).get(fecha).total,
+        // Expone la cantidad de registros del día con un nombre explícito para el tablero.
+        registrosHoy: db.prepare(
+            'SELECT COUNT(*) AS total FROM asistencias WHERE fecha = ?'
+        ).get(fecha).total,
+        // Calcula cuántas personas representan esos registros, distinguiendo Pueblo y Discipulado.
+        personasHoy: db.prepare(`
+            SELECT COALESCE(SUM(
+                CASE
+                    WHEN tipo = 'pueblo' THEN COALESCE(cantidad, 1)
+                    ELSE 1
+                END
+            ), 0) AS total
+            FROM asistencias
+            WHERE fecha = ?
+        `).get(fecha).total,
         asistenciasPorTipo: db.prepare(`
             SELECT tipo, COUNT(*) AS total
             FROM asistencias WHERE fecha = ? GROUP BY tipo
+        `).all(fecha),
+        // Permite al frontend mostrar el alcance humano de cada módulo sin inferirlo.
+        personasPorTipo: db.prepare(`
+            SELECT tipo, COALESCE(SUM(
+                CASE
+                    WHEN tipo = 'pueblo' THEN COALESCE(cantidad, 1)
+                    ELSE 1
+                END
+            ), 0) AS total
+            FROM asistencias
+            WHERE fecha = ?
+            GROUP BY tipo
         `).all(fecha),
         totalMiembros: db.prepare(
             'SELECT COUNT(*) AS total FROM miembros WHERE activo = 1'

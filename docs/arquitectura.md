@@ -38,7 +38,7 @@ La separación del frontend continúa en evolución:
 - `useSession` y `useNavigation` centralizan identidad, rutas e historial.
 - `AppShell` comparte navegación, usuario, rol, contexto y cierre de sesión.
 - `FeedbackProvider` concentra notificaciones y confirmaciones.
-- Los módulos funcionales restantes conservan temporalmente estilos locales.
+- Los módulos funcionales ya se reorganizan bajo `public/js/features/`.
 - La navegación principal usa el hash y las subvistas funcionales conservan estado local.
 
 Las siguientes fases completarán las fronteras del frontend sin cambiar el tipo de arquitectura.
@@ -209,8 +209,8 @@ public/
     └── utils/
 ```
 
-No es obligatorio crear todas las carpetas desde el inicio. Deben aparecer cuando exista una
-responsabilidad concreta que las justifique.
+La carpeta `features/` ya contiene la separación por capacidades funcionales.
+Cada módulo debe dividir su lógica entre carga de datos, estado local y vista presentacional.
 
 ## Comunicación y contrato HTTP
 

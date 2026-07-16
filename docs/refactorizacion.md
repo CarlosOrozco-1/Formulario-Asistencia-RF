@@ -28,7 +28,7 @@ Usuario → Login → POST /api/auth/login → JWT → localStorage
   → app.js verifica token → muestra dashboard o login
 ```
 
-## Fase 3: Dashboard (Resumen de Asistencias) - Pendiente
+## Fase 3: Dashboard (Resumen de Asistencias) - Completada
 
 ### Objetivo
 Mostrar un resumen visual de las asistencias registradas:
@@ -43,7 +43,7 @@ Mostrar un resumen visual de las asistencias registradas:
 - `GET /api/miembros?tipo=discipulado` → lista de miembros
 - `GET /api/miembros?tipo=pueblo` → lista de miembros
 
-## Fase 4: Modulo Discipulado - Pendiente
+## Fase 4: Modulo Discipulado - Completada
 
 ### Objetivo
 Gestion de grupos de discipulado con lista de integrantes por grupo y registro de asistencia.
@@ -59,7 +59,7 @@ Gestion de grupos de discipulado con lista de integrantes por grupo y registro d
 ### Esquema de datos extendido
 Se agregan las tablas `grupos_discipulado` y se relaciona `miembros` con `grupo_id`.
 
-## Fase 5: Modulo Pueblo - Pendiente
+## Fase 5: Modulo Pueblo - Completada
 
 ### Objetivo
 Registro de asistencia del pueblo (departamentos/categorias) con acceso publico limitado.
@@ -77,7 +77,7 @@ Registro de asistencia del pueblo (departamentos/categorias) con acceso publico 
 - `AUTH`: GET /api/pueblo/reportes (ver reportes)
 - `ADMIN`: CRUD de categorias y gestion de miembros
 
-## Fase 6: CRUD Usuarios (Admin) - Pendiente
+## Fase 6: CRUD Usuarios (Admin) - Completada
 
 ### Objetivo
 Gestion de usuarios del sistema, solo accesible por administradores.

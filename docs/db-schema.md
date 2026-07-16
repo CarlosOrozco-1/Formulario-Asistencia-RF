@@ -127,7 +127,7 @@ CREATE INDEX idx_usuarios_username ON usuarios(username);
 |--------|------|--------------|-------------|
 | POST | /api/auth/login | No | Inicio de sesion |
 | POST | /api/publico/pueblo/asistencia | No | Registro publico de asistencia |
-| GET | /api/asistencias/resumen | JWT | Resumen para dashboard |
+| GET | /api/asistencias/resumen | JWT | Resumen para dashboard con registros y personas |
 | GET | /api/asistencias | JWT | Listar asistencias (con filtros) |
 | POST | /api/asistencias | JWT | Crear asistencia |
 | PUT | /api/asistencias/:id | JWT | Actualizar asistencia |

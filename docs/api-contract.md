@@ -34,6 +34,13 @@ El reemplazo completo de asistencia de un grupo devuelve el total persistido:
 miembro activo del grupo. La eliminación de registros anteriores y la inserción de la nueva
 lista ocurren dentro de una sola transacción.
 
+El resumen del dashboard conserva sus claves históricas y agrega métricas explícitas para la
+fase 6:
+
+- `registrosHoy`: cantidad de filas registradas en la fecha consultada.
+- `personasHoy`: cantidad de personas representadas por esas filas.
+- `personasPorTipo`: arreglo por tipo con la misma definición de personas.
+
 ## Respuestas de error
 
 Todo error utiliza la misma estructura:

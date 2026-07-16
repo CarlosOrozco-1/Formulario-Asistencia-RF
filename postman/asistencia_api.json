@@ -156,7 +156,8 @@
                     "request": {
                         "method": "GET",
                         "header": [],
-                        "url": "{{base_url}}/api/asistencias/resumen"
+                        "url": "{{base_url}}/api/asistencias/resumen",
+                        "description": "Devuelve registrosHoy, personasHoy, personasPorTipo y el resto del resumen."
                     },
                     "response": []
                 }

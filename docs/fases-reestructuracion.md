@@ -27,7 +27,7 @@ y documentado.
 | 3 | Separación por capas del backend | Completada | Fase 2 |
 | 4 | Fundamentos del sistema de diseño | Completada | Fase 1 |
 | 5 | Shell, navegación y sesión del frontend | Completada | Fases 2 y 4 |
-| 6 | Refactorización de módulos funcionales | Pendiente | Fases 3 y 5 |
+| 6 | Refactorización de módulos funcionales | Completada | Fases 3 y 5 |
 | 7 | Responsividad y accesibilidad | Pendiente | Fase 6 |
 | 8 | Pruebas y automatización de calidad | Pendiente | Fases 3 a 7 |
 | 9 | Seguridad, operación y documentación final | Pendiente | Fase 8 |
@@ -323,6 +323,23 @@ de negocio.
 - Cada módulo puede evolucionar sin modificar los demás.
 - Las operaciones muestran progreso, resultado y opción de recuperación.
 - Los datos del dashboard tienen una definición de negocio documentada.
+
+### Resultado de implementación
+
+- La carpeta `public/js/features/` agrupa login, dashboard, discipulado, pueblo y usuarios.
+- Cada módulo separa carga inicial, estado local y vista presentacional.
+- El dashboard muestra `registrosHoy` y `personasHoy` para distinguir registros de personas.
+- `personasPorTipo` deja explícito cuántas personas representan los registros de cada dominio.
+- Los formularios conservan su estado al recibir errores de la API.
+- La navegación global mantiene el mismo contrato y los módulos siguen consumiendo `window.AppNavigation`.
+- El detalle técnico se documenta en `docs/fases/fase-6-refactorizacion-modulos.md`.
+
+### Evidencia de verificación
+
+- Revisión de los nuevos módulos bajo `public/js/features/`.
+- Comprobación del resumen del tablero con métricas explícitas de registros y personas.
+- Validación sintáctica de los archivos JavaScript modificados.
+- Revisión documental de la fase y de la arquitectura actualizada.
 
 ## Fase 7: Responsividad y accesibilidad
 
