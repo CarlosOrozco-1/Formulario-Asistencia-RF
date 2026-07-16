@@ -1,4 +1,4 @@
--- Schema SQL para Asistencia RF
+-- Schema SQL para Gestión de Asistencia
 -- Ejecutado por better-sqlite3 al iniciar el servidor
 -- Ver documentacion completa en docs/db-schema.md
 

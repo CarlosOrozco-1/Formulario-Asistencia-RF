@@ -1,7 +1,7 @@
 {
     "info": {
         "_postman_id": "7d9c6b12-9c3a-4e8b-b1a3-c5d6e7f8g9h0",
-        "name": "Sistema de Asistencia Monte Carmelo",
+        "name": "Gestión de Asistencia",
         "description": "API REST del sistema. Los errores usan { error: { code, message, details } }. Los POST de creación responden 201; validación 400; autenticación 401; permisos 403; recursos ausentes 404; conflictos 409.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },

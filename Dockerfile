@@ -1,4 +1,4 @@
-# Dockerfile para Asistencia RF
+# Dockerfile para Gestión de Asistencia
 # Etapa 1: Build (no necesitamos build step)
 # Etapa 2: Servidor Node.js
 

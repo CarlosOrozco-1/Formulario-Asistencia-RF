@@ -17,15 +17,15 @@ el rediseño completo del dashboard, discipulado, Pueblo y usuarios.
 
 - Las pantallas repetían cadenas extensas de clases para controles equivalentes.
 - Botones, campos, cargas y errores tenían variantes definidas dentro de cada componente.
-- La interfaz alternaba entre “Iglesia Restauración Familiar” y “Monte Carmelo”.
+- La interfaz utilizaba nombres institucionales que limitaban el producto a una organización.
 - Los colores se elegían directamente en las vistas sin una semántica documentada.
 - `alert` y `confirm` no contaban con sustitutos propios accesibles.
 - No existía un lugar donde revisar componentes y estados sin usar datos reales.
 
 ## Identidad visual
 
-Se adoptó **Monte Carmelo** como nombre único porque coincide con la documentación principal y
-las reglas del proyecto. La paleta distingue identidad y estados de negocio:
+Se adoptó **Gestión de Asistencia** como nombre general para que el producto pueda utilizarse en
+distintas organizaciones. La paleta distingue identidad y estados de negocio:
 
 | Uso | Token principal | Valor |
 |---|---|---|
@@ -141,6 +141,13 @@ public/
 - Los usos anteriores de `alert` y `confirm` se retirarán al migrar cada flujo.
 - La auditoría completa de contraste, móvil y lectores de pantalla corresponde a Fase 7.
 - React y Tailwind continúan cargándose desde CDN hasta evaluar el proceso de compilación.
+
+## Corrección de identidad posterior
+
+Antes de iniciar la Fase 5 se corrigió la decisión inicial de asociar la interfaz a una
+organización particular. “Gestión de Asistencia” es el nombre oficial del producto y debe usarse
+en títulos, navegación, documentación y referencias visuales. Los nombres de organizaciones
+pertenecen a configuración o datos de cada instalación, no a la identidad base de la aplicación.
 
 ## Criterios de aceptación alcanzados
 

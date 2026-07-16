@@ -1,6 +1,6 @@
 -- ============================================
 -- Script de Inicialización de Base de Datos
--- Sistema de Asistencia RF
+-- Gestión de Asistencia
 -- Motor: SQLite (SQL.js en navegador)
 -- ============================================
 

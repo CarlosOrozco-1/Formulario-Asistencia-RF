@@ -1,4 +1,4 @@
-# Refactorización - Sistema de Asistencia Monte Carmelo
+# Refactorización - Gestión de Asistencia
 
 ## Fase 1: Migración a Node.js + Express + SQLite (Completada)
 

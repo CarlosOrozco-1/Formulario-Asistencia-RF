@@ -1,4 +1,4 @@
-# Reglas de Desarrollo - Sistema de Asistencia Monte Carmelo
+# Reglas de Desarrollo - Gestión de Asistencia
 
 ## Propósito
 Este documento establece las reglas básicas para escribir y mantener el código del proyecto.

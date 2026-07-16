@@ -234,7 +234,7 @@ Crear una base visual coherente y reutilizable antes de rediseñar los módulos.
 
 ### Resultado de implementación
 
-- Se adoptó “Monte Carmelo” como nombre único de la interfaz.
+- Se adoptó “Gestión de Asistencia” como nombre general de la interfaz.
 - `public/styles.css` define tokens de color, tipografía, espaciado, radios y sombras.
 - Se crearon botón, campo, selector, tarjeta e insignia con variantes compartidas.
 - Se agregaron alerta, estado de contenido y notificación temporal como feedback común.

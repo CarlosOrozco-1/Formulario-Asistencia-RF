@@ -33,7 +33,7 @@ function DesignSystemReference() {
             <header>
                 <Badge variant="info">Referencia interna</Badge>
                 <h1 className="text-4xl font-black text-slate-900 mt-4">
-                    Sistema de diseño Monte Carmelo
+                    Sistema de diseño de Gestión de Asistencia
                 </h1>
                 <p className="text-slate-600 mt-3 max-w-2xl">
                     Componentes y reglas visuales disponibles para migrar las pantallas del

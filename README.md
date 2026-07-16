@@ -1,4 +1,4 @@
-# Sistema de Asistencia - Monte Carmelo
+# Gestión de Asistencia
 
 Sistema de registro de asistencia para reuniones del discipulado y asistencia del pueblo.
 
@@ -73,4 +73,4 @@ Instala la extensión "Live Server" en VS Code, haz clic derecho sobre `index.ht
 
 ---
 
-Monte Carmelo - 2026
+Gestión de Asistencia - 2026

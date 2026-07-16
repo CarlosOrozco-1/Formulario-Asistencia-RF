@@ -1,4 +1,4 @@
-// Pantalla de acceso migrada a los fundamentos visuales de Monte Carmelo.
+// Pantalla de acceso de la aplicación general Gestión de Asistencia.
 const { useState } = React;
 const { api } = window;
 const { Alert, Button, Card, Field } = window.UI;
@@ -34,11 +34,14 @@ window.LoginComponent = function LoginComponent({ onLogin, mensajeInicial = '' }
             {/* Presenta la identidad institucional sin duplicar controles operativos. */}
             <section className="login-brand hidden lg:flex items-center justify-center p-12">
                 <div className="relative z-10 max-w-lg text-center">
-                    <i data-lucide="church" className="w-24 h-24 mx-auto mb-7 opacity-90" />
+                    <i
+                        data-lucide="clipboard-check"
+                        className="w-24 h-24 mx-auto mb-7 opacity-90"
+                    />
                     <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-200">
-                        Sistema de Asistencia
+                        Control y seguimiento
                     </p>
-                    <h1 className="text-5xl font-black mt-3">Monte Carmelo</h1>
+                    <h1 className="text-5xl font-black mt-3">Gestión de Asistencia</h1>
                     <p className="text-blue-100 mt-5 leading-relaxed">
                         Una herramienta sencilla para acompañar y cuidar a nuestra comunidad.
                     </p>
@@ -50,11 +53,11 @@ window.LoginComponent = function LoginComponent({ onLogin, mensajeInicial = '' }
                 <Card variant="elevated" className="w-full max-w-md">
                     <div className="text-center mb-7">
                         <i
-                            data-lucide="church"
+                            data-lucide="clipboard-check"
                             className="text-blue-700 w-12 h-12 mx-auto mb-3 lg:hidden"
                         />
                         <p className="text-xs font-black uppercase tracking-widest text-blue-700">
-                            Monte Carmelo
+                            Gestión de Asistencia
                         </p>
                         <h2 className="text-2xl font-black text-slate-900 mt-2">
                             Bienvenido de nuevo

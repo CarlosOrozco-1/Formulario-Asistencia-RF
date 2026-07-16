@@ -46,10 +46,15 @@ function DashboardView({ resumen, usuario, onLogout }) {
             <header className="bg-white shadow-sm border-b border-slate-200">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <i data-lucide="church" className="text-green-700 w-8 h-8"></i>
+                        <i
+                            data-lucide="calendar-check"
+                            className="text-blue-700 w-8 h-8"
+                        ></i>
                         <div>
-                            <h1 className="text-lg font-black text-slate-800">Monte Carmelo</h1>
-                            <p className="text-xs text-slate-500 font-bold">Sistema de Asistencia</p>
+                            <h1 className="text-lg font-black text-slate-800">
+                                Gestión de Asistencia
+                            </h1>
+                            <p className="text-xs text-slate-500 font-bold">Panel de control</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">

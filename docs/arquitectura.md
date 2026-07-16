@@ -1,4 +1,4 @@
-# Arquitectura del Sistema de Asistencia Monte Carmelo
+# Arquitectura de Gestión de Asistencia
 
 ## Estado del documento
 
@@ -267,9 +267,10 @@ La interfaz emplea un sistema de diseño pequeño basado en Tailwind y estilos p
 - foco visible, navegación por teclado y nombres accesibles;
 - notificaciones y diálogos propios en lugar de `alert` y `confirm`.
 
-La identidad visual usa “Monte Carmelo”. El azul `#1d4ed8` identifica acciones y marca; verde,
-ámbar y rojo se reservan para éxito, advertencia y peligro. La referencia interactiva se sirve
-en `/design-system.html` y no consume información operativa.
+La identidad visual usa “Gestión de Asistencia” como nombre general, sin asociar el producto a
+una organización específica. El azul `#1d4ed8` identifica acciones y marca; verde, ámbar y rojo
+se reservan para éxito, advertencia y peligro. La referencia interactiva se sirve en
+`/design-system.html` y no consume información operativa.
 
 ## Pruebas y calidad
 
