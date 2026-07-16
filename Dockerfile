@@ -1,11 +1,13 @@
-# Imagen base ligera de Node.js para la API y la SPA estática.
-FROM node:20-alpine
+# Imagen base compatible con el ABI de Node.js que usa la instalación actual del proyecto.
+FROM node:26-bookworm-slim
 
 # Trabaja desde la carpeta del servidor para ejecutar el arranque real sin trucos de rutas.
 WORKDIR /app/server
 
-# Instala la toolchain mínima para compilar dependencias nativas en Alpine.
-RUN apk add --no-cache python3 make g++
+# Instala la toolchain mínima para compilar dependencias nativas en Debian slim.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copia el manifiesto antes del resto del código para aprovechar la cache de Docker.
 COPY --chown=node:node server/package.json server/package-lock.json* ./

@@ -60,13 +60,15 @@ El contenedor usa `/app/data/asistencias.db` como ruta persistente de SQLite y e
 ## Respaldo de datos
 
 - La base SQLite puede moverse mediante `DB_PATH`.
-- En Docker Compose, la ruta `./data` se monta como volumen persistente.
+- En Docker Compose, el volumen `asistencia_data` conserva la base SQLite entre reinicios.
 
 ## Documentación
 
 - `docs/arquitectura.md`
 - `docs/fases-reestructuracion.md`
 - `docs/refactorizacion.md`
+- `docs/levantamiento-servicios.md`
+- `docs/flujo-er-casos-uso.md`
 - `docs/fases/`
 
 ## Verificación

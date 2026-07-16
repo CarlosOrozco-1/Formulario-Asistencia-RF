@@ -450,7 +450,8 @@ Preparar la arquitectura corregida para una operación mantenible y una exposici
 - `server/index.js` cierra el servidor y la base al recibir `SIGINT` o `SIGTERM`.
 - `server/database/connection.js` acepta `DB_PATH` para respaldos y volúmenes persistentes.
 - `Dockerfile` ejecuta el servidor como usuario no privilegiado y define healthcheck.
-- `docker-compose.yml` monta `./data`, fija la ruta de la base y documenta límites de abuso.
+- `docker-compose.yml` monta el volumen `asistencia_data`, fija la ruta de la base y
+  documenta límites de abuso.
 - `README.md` quedó alineado con la operación actual del sistema.
 - La fase quedó documentada en `docs/fases/fase-9-seguridad-operacion-documentacion-final.md`.
 

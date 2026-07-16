@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   app:
     build: .
     ports:
       - "3000:3000"
     volumes:
-      - ./data:/app/data
+      - asistencia_data:/app/data
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-asistencia-rf-secret-2026}
@@ -32,3 +30,6 @@ services:
       timeout: 5s
       start_period: 20s
       retries: 3
+
+volumes:
+  asistencia_data:

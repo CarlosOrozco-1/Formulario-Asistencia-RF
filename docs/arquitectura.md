@@ -265,7 +265,8 @@ despliegue:
 - El servidor emite eventos operativos estructurados para inicio, apagado y errores internos.
 - `server/index.js` cierra el proceso de forma limpia ante `SIGINT` y `SIGTERM`.
 - La imagen Docker ejecuta el servidor como usuario no privilegiado y declara healthcheck.
-- `docker-compose.yml` monta `./data` para conservar `asistencias.db` entre reinicios.
+- `docker-compose.yml` monta el volumen `asistencia_data` para conservar `asistencias.db`
+  entre reinicios.
 
 ## Autenticación y autorización
 
