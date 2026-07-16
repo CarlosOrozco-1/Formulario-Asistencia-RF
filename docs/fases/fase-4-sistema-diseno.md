@@ -3,7 +3,7 @@
 ## Estado
 
 - **Resultado:** completada
-- **Commit funcional:** pendiente de registrar
+- **Commit funcional:** `3acb8b6`
 - **Fecha de cierre:** 16 de julio de 2026
 - **Dependencia:** Fase 3 completada
 
