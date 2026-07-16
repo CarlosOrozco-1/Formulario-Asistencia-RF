@@ -1,6 +1,8 @@
 // Componente principal - Orquesta la navegacion entre login y vistas protegidas
 const { useState, useEffect } = React;
 const { api, helpers, CONFIG } = window;
+// Consume estados y controles compartidos para evitar variantes globales improvisadas.
+const { Button, StatusState } = window.UI;
 // Limita la navegación a módulos conocidos para evitar pantallas o estados sin salida.
 const VISTAS_VALIDAS = ['dashboard', 'discipulado', 'pueblo', 'usuarios'];
 
@@ -135,11 +137,26 @@ function App() {
     // Usuario autenticado: mostrar vista segun el hash de la URL
     switch (vista) {
         case 'discipulado':
-            return <DiscipuladoComponent usuario={usuario} onBack={() => window.location.hash = 'dashboard'} />;
+            return (
+                <DiscipuladoComponent
+                    usuario={usuario}
+                    onBack={() => { window.location.hash = 'dashboard'; }}
+                />
+            );
         case 'pueblo':
-            return <PuebloComponent usuario={usuario} onBack={() => window.location.hash = 'dashboard'} />;
+            return (
+                <PuebloComponent
+                    usuario={usuario}
+                    onBack={() => { window.location.hash = 'dashboard'; }}
+                />
+            );
         case 'usuarios':
-            return <UsuariosComponent usuario={usuario} onBack={() => window.location.hash = 'dashboard'} />;
+            return (
+                <UsuariosComponent
+                    usuario={usuario}
+                    onBack={() => { window.location.hash = 'dashboard'; }}
+                />
+            );
         default:
             return <DashboardComponent usuario={usuario} onLogout={handleLogout} />;
     }
@@ -147,35 +164,30 @@ function App() {
 
 function Cargando() {
     return (
-        <div className="min-h-screen flex items-center justify-center">
-            <p className="text-slate-600 font-bold text-lg animate-pulse">Cargando...</p>
-        </div>
+        <StatusState
+            type="loading"
+            title="Validando tu sesión"
+            description="Esto tomará solo un momento."
+            fullPage
+        />
     );
 }
 
 // Presenta una salida recuperable cuando el servidor no puede validar la sesión.
 function ErrorSesion({ mensaje, onReintentar, onSalir }) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-            <div className="max-w-md text-center bg-white border border-slate-200 rounded-2xl p-6">
-                <h1 className="text-lg font-black text-slate-800">
-                    No pudimos validar tu sesión
-                </h1>
-                <p className="text-sm text-slate-600 mt-2">{mensaje}</p>
-                <div className="flex justify-center gap-3 mt-5">
-                    <button onClick={onReintentar}
-                        className="bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm">
-                        Reintentar
-                    </button>
-                    <button onClick={onSalir}
-                        className={
-                            'bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm'
-                        }>
-                        Volver al login
-                    </button>
-                </div>
-            </div>
-        </div>
+        <StatusState
+            type="error"
+            title="No pudimos validar tu sesión"
+            description={mensaje}
+            fullPage
+            actions={(
+                <>
+                    <Button onClick={onReintentar}>Reintentar</Button>
+                    <Button variant="secondary" onClick={onSalir}>Volver al login</Button>
+                </>
+            )}
+        />
     );
 }
 

@@ -25,7 +25,7 @@ y documentado.
 | 1 | Estabilización crítica | Completada | Fase 0 |
 | 2 | Contratos HTTP y manejo de errores | Completada | Fase 1 |
 | 3 | Separación por capas del backend | Completada | Fase 2 |
-| 4 | Fundamentos del sistema de diseño | Pendiente | Fase 1 |
+| 4 | Fundamentos del sistema de diseño | Completada | Fase 1 |
 | 5 | Shell, navegación y sesión del frontend | Pendiente | Fases 2 y 4 |
 | 6 | Refactorización de módulos funcionales | Pendiente | Fases 3 y 5 |
 | 7 | Responsividad y accesibilidad | Pendiente | Fase 6 |
@@ -231,6 +231,24 @@ Crear una base visual coherente y reutilizable antes de rediseñar los módulos.
 - Los controles pueden utilizarse con teclado y muestran foco visible.
 - No se introducen colores o tamaños arbitrarios en las pantallas migradas.
 - Existe una página o sección de referencia visual para revisar variantes.
+
+### Resultado de implementación
+
+- Se adoptó “Monte Carmelo” como nombre único de la interfaz.
+- `public/styles.css` define tokens de color, tipografía, espaciado, radios y sombras.
+- Se crearon botón, campo, selector, tarjeta e insignia con variantes compartidas.
+- Se agregaron alerta, estado de contenido y notificación temporal como feedback común.
+- El diálogo de confirmación gestiona foco, teclado, Escape y bloqueo del fondo.
+- El login y los estados globales de sesión utilizan los nuevos componentes.
+- `/design-system.html` permite revisar visualmente variantes y estados.
+- El detalle técnico se conserva en `docs/fases/fase-4-sistema-diseno.md`.
+
+### Evidencia de verificación
+
+- Análisis de JSX de todos los componentes nuevos y pantallas modificadas.
+- Revisión de líneas, diferencias y estructura de estilos.
+- Construcción correcta de la imagen Docker con los nuevos recursos estáticos.
+- Comprobación HTTP de la SPA, estilos, componentes y referencia visual.
 
 ## Fase 5: Shell, navegación y sesión del frontend
 

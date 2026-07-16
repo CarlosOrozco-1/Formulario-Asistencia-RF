@@ -33,7 +33,9 @@ El backend implementa el monolito modular por capas definido en este documento:
 La separación del frontend continúa en evolución:
 
 - Los componentes React todavía mezclan carga de datos, estado, navegación y presentación.
-- Existe un servicio HTTP común, pero todavía no hay componentes de UI compartidos.
+- Existen componentes compartidos en `components/ui` y `components/feedback`.
+- El login y los estados globales de sesión ya consumen el sistema de diseño.
+- Los módulos funcionales restantes conservan temporalmente estilos locales.
 - La navegación principal utiliza el hash de la URL y las subvistas usan estado local.
 
 Las siguientes fases completarán las fronteras del frontend sin cambiar el tipo de arquitectura.
@@ -170,6 +172,7 @@ server/
 
 public/
 ├── index.html
+├── design-system.html
 ├── styles.css
 ├── app.js
 └── js/
@@ -253,17 +256,20 @@ de considerarse listo para exposición en Internet.
 
 ## Arquitectura de UI
 
-La interfaz empleará un sistema de diseño pequeño basado en Tailwind y estilos propios:
+La interfaz emplea un sistema de diseño pequeño basado en Tailwind y estilos propios:
 
-- tokens de color, tipografía, espaciado, bordes y sombras;
-- componentes con variantes consistentes;
+- tokens de color, tipografía, espaciado, bordes y sombras en `public/styles.css`;
+- componentes con variantes consistentes en `public/js/components/ui/`;
+- feedback y estados en `public/js/components/feedback/`;
 - layout común para módulos autenticados;
 - diseño mobile-first;
 - estados definidos para carga, vacío, error, éxito y permisos insuficientes;
 - foco visible, navegación por teclado y nombres accesibles;
 - notificaciones y diálogos propios en lugar de `alert` y `confirm`.
 
-La identidad visual debe usar un único nombre institucional y una paleta documentada.
+La identidad visual usa “Monte Carmelo”. El azul `#1d4ed8` identifica acciones y marca; verde,
+ámbar y rojo se reservan para éxito, advertencia y peligro. La referencia interactiva se sirve
+en `/design-system.html` y no consume información operativa.
 
 ## Pruebas y calidad
 

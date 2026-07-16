@@ -7,7 +7,12 @@ Sistema de registro de asistencia para reuniones del discipulado y asistencia de
 - **Discipulado**: Registro de hermanos con estados (Presente/Reportado/Ausencia).
 - **Pueblo**: Registro por categorías (Alabanza, Danza, Cafetería, Pueblo en General, etc.).
 - **PDF**: Generación de reportes detallados y filtrados en PDF para compartir fácilmente.
-- **Base de datos local**: Los datos se guardan en el almacenamiento local del navegador (SQLite).
+- **Persistencia centralizada**: Los datos se guardan en SQLite mediante el servidor Express.
+
+## Referencia visual
+
+El sistema de diseño puede revisarse en `/design-system.html` al ejecutar la aplicación. Sus
+decisiones y componentes están documentados en `docs/fases/fase-4-sistema-diseno.md`.
 
 ## Estructura del Proyecto
 

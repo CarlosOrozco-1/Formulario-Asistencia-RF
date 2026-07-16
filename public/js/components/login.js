@@ -1,119 +1,101 @@
-// Componente de Login - Formulario de inicio de sesion
+// Pantalla de acceso migrada a los fundamentos visuales de Monte Carmelo.
 const { useState } = React;
 const { api } = window;
+const { Alert, Button, Card, Field } = window.UI;
 
-// Permite informar una expiración de sesión sin crear un estado global adicional en el login.
-window.LoginComponent = function ({ onLogin, mensajeInicial = "" }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  // Conserva el mensaje recibido hasta que el usuario intente autenticarse nuevamente.
-  const [error, setError] = useState(mensajeInicial);
-  const [loading, setLoading] = useState(false);
+// Permite informar una expiración de sesión dentro del mismo formulario recuperable.
+window.LoginComponent = function LoginComponent({ onLogin, mensajeInicial = '' }) {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(mensajeInicial);
+    const [loading, setLoading] = useState(false);
 
-  // Envia credenciales al servidor
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const res = await api.login(username, password);
-      if (res.token) {
-        onLogin(res);
-      } else {
-        setError(res.error || "Error al iniciar sesion");
-      }
-    } catch (err) {
-      // Distingue credenciales, validación y conexión usando el contrato del cliente HTTP.
-      setError(err.message || "Error al iniciar sesión");
-    }
-    setLoading(false);
-  };
+    // Envía credenciales y conserva los datos cuando el servidor rechaza la solicitud.
+    const handleSubmit = async event => {
+        event.preventDefault();
+        setError('');
+        setLoading(true);
+        try {
+            const response = await api.login(username, password);
+            if (response.token) {
+                onLogin(response);
+            } else {
+                setError(response.error || 'No fue posible iniciar sesión');
+            }
+        } catch (requestError) {
+            setError(requestError.message || 'No fue posible iniciar sesión');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  return (
-    <div className="min-h-screen flex">
-      {/* Lado izquierdo: info visual */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 items-center justify-center p-12">
-        <div className="text-center text-white">
-          <i
-            data-lucide="church"
-            className="w-24 h-24 mx-auto mb-6 opacity-90"
-          ></i>
-          <h1 className="text-4xl font-black mb-2">
-            Iglesia Restauración Familiar
-          </h1>
-          <p className="text-lg font-bold text-blue-200 uppercase tracking-widest">
-            Sistema de Asistencia
-          </p>
-          <div className="mt-12 border-t border-blue-400/30 pt-8">
-            <p className="text-blue-200 font-semibold text-sm">
-              *********************
-            </p>
-          </div>
-        </div>
-      </div>
+    return (
+        <main className="login-shell grid lg:grid-cols-2">
+            {/* Presenta la identidad institucional sin duplicar controles operativos. */}
+            <section className="login-brand hidden lg:flex items-center justify-center p-12">
+                <div className="relative z-10 max-w-lg text-center">
+                    <i data-lucide="church" className="w-24 h-24 mx-auto mb-7 opacity-90" />
+                    <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-200">
+                        Sistema de Asistencia
+                    </p>
+                    <h1 className="text-5xl font-black mt-3">Monte Carmelo</h1>
+                    <p className="text-blue-100 mt-5 leading-relaxed">
+                        Una herramienta sencilla para acompañar y cuidar a nuestra comunidad.
+                    </p>
+                </div>
+            </section>
 
-      {/* Lado derecho: formulario */}
-      <div className="w-full lg:w-1/2 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-8">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-          {/* Version movil del titulo (visible solo en mobile) */}
-          <div className="text-center mb-6 lg:hidden">
-            <i
-              data-lucide="church"
-              className="text-blue-700 w-12 h-12 mx-auto mb-3"
-            ></i>
-            <h1 className="text-2xl font-black text-slate-800">
-              Monte Carmelo
-            </h1>
-            <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">
-              Sistema de Asistencia
-            </p>
-          </div>
+            {/* Mantiene el formulario como único punto de interacción de la pantalla. */}
+            <section className="login-form-panel flex items-center justify-center p-5 sm:p-8">
+                <Card variant="elevated" className="w-full max-w-md">
+                    <div className="text-center mb-7">
+                        <i
+                            data-lucide="church"
+                            className="text-blue-700 w-12 h-12 mx-auto mb-3 lg:hidden"
+                        />
+                        <p className="text-xs font-black uppercase tracking-widest text-blue-700">
+                            Monte Carmelo
+                        </p>
+                        <h2 className="text-2xl font-black text-slate-900 mt-2">
+                            Bienvenido de nuevo
+                        </h2>
+                        <p className="text-sm text-slate-500 mt-2">
+                            Ingresa tus credenciales para continuar.
+                        </p>
+                    </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-black text-slate-600 uppercase mb-1">
-                Usuario
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm"
-                placeholder="Ingresa tu usuario"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-600 uppercase mb-1">
-                Contrasena
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm"
-                placeholder="Ingresa tu contrasena"
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center p-3 rounded-xl">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-700 text-white py-3 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-blue-800 transition-all disabled:opacity-50 shadow-lg"
-            >
-              {loading ? "Ingresando..." : "Iniciar Sesion"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
+                    <form onSubmit={handleSubmit} className="grid gap-5">
+                        <Field
+                            id="login-username"
+                            label="Usuario"
+                            type="text"
+                            value={username}
+                            onChange={event => setUsername(event.target.value)}
+                            autoComplete="username"
+                            placeholder="Ingresa tu usuario"
+                            required
+                        />
+                        <Field
+                            id="login-password"
+                            label="Contraseña"
+                            type="password"
+                            value={password}
+                            onChange={event => setPassword(event.target.value)}
+                            autoComplete="current-password"
+                            placeholder="Ingresa tu contraseña"
+                            required
+                        />
+                        {error && (
+                            <Alert variant="danger" title="No pudimos iniciar sesión">
+                                {error}
+                            </Alert>
+                        )}
+                        <Button type="submit" size="large" fullWidth loading={loading}>
+                            {loading ? 'Validando acceso' : 'Iniciar sesión'}
+                        </Button>
+                    </form>
+                </Card>
+            </section>
+        </main>
+    );
 };
