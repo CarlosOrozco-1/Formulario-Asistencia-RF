@@ -69,6 +69,7 @@ El contenedor usa `/app/data/asistencias.db` como ruta persistente de SQLite y e
 - `docs/refactorizacion.md`
 - `docs/levantamiento-servicios.md`
 - `docs/flujo-er-casos-uso.md`
+- `docs/fases/fase-10-flujo-registro-asistencia-v102.md`
 - `docs/fases/`
 
 ## Verificación

@@ -31,6 +31,7 @@ y documentado.
 | 7 | Responsividad y accesibilidad | Completada | Fase 6 |
 | 8 | Pruebas y automatización de calidad | Completada | Fases 3 a 7 |
 | 9 | Seguridad, operación y documentación final | Completada | Fase 8 |
+| 10 | Flujo de registro de asistencia v1.0.2 | Pendiente | Fase 9 |
 
 ## Fase 0: Línea base y definición arquitectónica
 
@@ -463,6 +464,37 @@ Preparar la arquitectura corregida para una operación mantenible y una exposici
 - Revisión del Dockerfile, `docker-compose.yml` y variables de entorno.
 
 ## Inventario inicial de riesgos
+
+## Fase 10: Flujo de registro de asistencia v1.0.2
+
+### Objetivo
+
+Mejorar el registro de asistencia sin abrir acceso anónimo, reduciendo errores de captura y
+haciendo el flujo más rápido para Discipulado y Pueblo.
+
+### Alcance
+
+- Guiar el registro por pasos.
+- Prellenar fecha y contexto más probable.
+- Confirmar la información antes de guardar.
+- Mostrar historial reciente del mismo contexto.
+- Mantener el contexto después de guardar para captura continua.
+- Agregar validación temprana en interfaz antes de enviar la solicitud.
+- Documentar el flujo final y actualizar la colección Postman si cambian contratos.
+
+### Criterios de aceptación
+
+- El registro autenticado requiere menos pasos que el flujo actual.
+- El usuario detecta errores antes de enviar la solicitud al servidor.
+- El contexto de captura no se pierde entre registros consecutivos.
+- No se abren permisos nuevos para modificar catálogos.
+
+### Versión objetivo
+
+La primera iteración de esta mejora se documenta como objetivo de la línea 1.0.x.
+Si solo cambia experiencia de usuario sin tocar contratos ni migraciones, la versión natural
+es una actualización de parche, por ejemplo `1.0.1` o `1.0.2`.
+Si aparecieran endpoints nuevos o cambios de compatibilidad, entonces debería crecer a `1.1.0`.
 
 | Prioridad | Riesgo | Fase responsable |
 |---|---|---|
