@@ -89,16 +89,31 @@ Gestion de usuarios del sistema, solo accesible por administradores.
 - Desactivar/activar usuario
 - Cambiar contraseña
 
-## Fase 7: Docker + Oracle Cloud Deploy - Pendiente
+## Fase 7: Responsividad y accesibilidad - Completada
 
 ### Objetivo
-Desplegar la aplicacion en Oracle Cloud Free Tier usando Docker.
 
-### Componentes
-- Dockerfile con Node.js 20
-- docker-compose.yml con el servicio web
-- Volumen persistente para la base de datos SQLite
-- Exposicion en puerto 3000
+Hacer que la interfaz sea usable en móvil, escritorio, teclado y tecnologías de asistencia.
+
+### Resultado
+
+- Se agregó un shell accesible con navegación global y enlace de salto al contenido.
+- Las tablas principales adoptaron variantes responsivas para móvil y teclado.
+- Los controles solo con icono recibieron nombres accesibles explícitos.
+- La documentación de la fase quedó en `docs/fases/fase-7-responsividad-accesibilidad.md`.
+
+## Fase 8: Pruebas y automatización de calidad - Completada
+
+### Objetivo
+
+Agregar una red de seguridad automatizada para validar los contratos críticos del backend.
+
+### Resultado
+
+- Se agregaron pruebas unitarias para validaciones, autenticación y errores controlados.
+- Se agregó una prueba de integración en memoria para login, permisos, asistencias y tablero.
+- Se incorporaron los scripts `test`, `test:watch`, `check` y `verify` en el servidor.
+- Se documentó la fase en `docs/fases/fase-8-pruebas-automatizacion-calidad.md`.
 
 ---
 

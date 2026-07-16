@@ -29,7 +29,7 @@ y documentado.
 | 5 | Shell, navegación y sesión del frontend | Completada | Fases 2 y 4 |
 | 6 | Refactorización de módulos funcionales | Completada | Fases 3 y 5 |
 | 7 | Responsividad y accesibilidad | Completada | Fase 6 |
-| 8 | Pruebas y automatización de calidad | Pendiente | Fases 3 a 7 |
+| 8 | Pruebas y automatización de calidad | Completada | Fases 3 a 7 |
 | 9 | Seguridad, operación y documentación final | Pendiente | Fase 8 |
 
 ## Fase 0: Línea base y definición arquitectónica
@@ -394,8 +394,8 @@ Proteger los comportamientos críticos y las fronteras arquitectónicas contra r
 - Agregar pruebas unitarias para servicios y utilidades.
 - Agregar pruebas de integración para repositorios y endpoints.
 - Agregar pruebas de los flujos login, asistencia y permisos.
-- Incorporar lint, formato y comprobaciones automáticas.
-- Configurar integración continua para ejecutar las verificaciones.
+- Incorporar comprobaciones automáticas de sintaxis y test.
+- Documentar el resultado de la fase y el harness de verificación.
 
 ### Criterios de aceptación
 
@@ -403,6 +403,20 @@ Proteger los comportamientos críticos y las fronteras arquitectónicas contra r
 - Los flujos de autenticación y registro de asistencia tienen cobertura automatizada.
 - Una regresión en las reglas de dependencia o contratos impide integrar el cambio.
 - Las pruebas no dependen de la base de datos de producción.
+
+### Resultado de implementación
+
+- Se agregaron pruebas unitarias para validación, autenticación y utilidades compartidas.
+- Se agregó una prueba de integración para login, permisos, asistencias y resumen del tablero.
+- La integración se ejecuta en memoria con SQLite aislado y Express sin abrir puertos locales.
+- Se añadieron los scripts `test`, `test:watch`, `check` y `verify` en `server/package.json`.
+- La fase quedó documentada en `docs/fases/fase-8-pruebas-automatizacion-calidad.md`.
+
+### Evidencia de verificación
+
+- `npm run check` sobre el servidor.
+- `npm test` con 4 pruebas aprobadas.
+- Validación del contrato de error, autenticación y métricas del dashboard.
 
 ## Fase 9: Seguridad, operación y documentación final
 

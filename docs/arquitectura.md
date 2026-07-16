@@ -239,6 +239,19 @@ El cliente HTTP debe:
 Toda modificación de endpoints debe reflejarse en `postman/asistencia_api.json`.
 La definición detallada de códigos y validaciones se mantiene en `docs/api-contract.md`.
 
+## Calidad y pruebas automatizadas
+
+La arquitectura incluye una capa de verificación para proteger los contratos del sistema:
+
+- `server/test/` concentra pruebas unitarias e integradas del backend.
+- Las pruebas de integración se ejecutan en memoria con SQLite aislado para evitar puertos
+  locales y efectos colaterales.
+- `npm run check` valida sintaxis y `npm test` ejecuta la suite automatizada.
+- `npm run verify` combina ambas verificaciones como puerta de calidad previa a cambios.
+
+Este enfoque permite validar la arquitectura por contrato sin acoplar la verificación a una
+infraestructura externa ni a datos persistentes reales.
+
 ## Autenticación y autorización
 
 1. El usuario inicia sesión mediante `POST /api/auth/login`.
