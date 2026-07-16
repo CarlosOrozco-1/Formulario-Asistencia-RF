@@ -2,8 +2,9 @@
 // El formulario público utiliza un endpoint independiente y no depende de este componente
 const { useState, useEffect } = React;
 const { api, helpers } = window;
+const { Icon, StatusState } = window.UI;
 
-window.PuebloComponent = function({ usuario, onBack }) {
+window.PuebloComponent = function PuebloComponent() {
     // Estados del componente: vista activa, categorias, asistencias, fecha
     const [vista, setVista] = useState('categorias'); // categorias | asistencia | reportes
     const [categorias, setCategorias] = useState([]);
@@ -22,32 +23,17 @@ window.PuebloComponent = function({ usuario, onBack }) {
     // Mientras carga
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <p className="text-slate-600 font-bold animate-pulse">Cargando...</p>
-            </div>
+            <StatusState
+                type="loading"
+                title="Cargando categorías"
+                description="Estamos preparando la información de Pueblo."
+            />
         );
     }
 
     // Renderizado principal segun la vista activa
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Header del modulo */}
-            <header className="bg-white shadow-sm border-b border-slate-200">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                            <i data-lucide="arrow-left" className="w-6 h-6"></i>
-                        </button>
-                        <i data-lucide="building" className="text-orange-700 w-8 h-8"></i>
-                        <h1 className="text-xl font-black text-slate-800">Pueblo</h1>
-                    </div>
-                    <span className="text-sm font-bold text-slate-500">
-                        {usuario.nombre}
-                    </span>
-                </div>
-            </header>
-
-            <main className="max-w-6xl mx-auto px-4 py-6">
+        <main className="max-w-6xl mx-auto px-4 py-6">
                 {vista === 'categorias' && (
                     <VistaCategorias
                         categorias={categorias}
@@ -61,7 +47,6 @@ window.PuebloComponent = function({ usuario, onBack }) {
                         categorias={categorias}
                         fecha={fecha}
                         setFecha={setFecha}
-                        usuario={usuario}
                         onBack={() => setVista('categorias')}
                     />
                 )}
@@ -71,8 +56,7 @@ window.PuebloComponent = function({ usuario, onBack }) {
                         onBack={() => setVista('categorias')}
                     />
                 )}
-            </main>
-        </div>
+        </main>
     );
 };
 
@@ -80,6 +64,7 @@ window.PuebloComponent = function({ usuario, onBack }) {
 // VistaCategorias: Listado de categorias/departamentos del pueblo
 // ---------------------------------------------------------------------------
 function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }) {
+    const { notify, confirm } = window.useFeedback();
     const [showForm, setShowForm] = useState(false);
     const [nombre, setNombre] = useState('');
 
@@ -94,19 +79,26 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
             setShowForm(false);
         } catch (error) {
             // Conserva el formulario para corregir validación o un nombre duplicado.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
     // Elimina una categoria
     const handleDelete = async (id) => {
-        if (!confirm('¿Eliminar esta categoria?')) return;
+        const accepted = await confirm({
+            title: 'Eliminar categoría',
+            description: 'La categoría dejará de estar disponible para nuevos registros.',
+            confirmLabel: 'Eliminar categoría',
+            danger: true
+        });
+        if (!accepted) return;
         try {
             await api.deleteCategoria(id);
             setCategorias(categorias.filter(c => c.id !== id));
+            notify('La categoría fue eliminada.', { variant: 'success' });
         } catch (error) {
             // Evita ocultar la categoría cuando el servidor no confirmó la operación.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
@@ -118,17 +110,17 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
                 <div className="flex gap-2">
                     <button onClick={onReportes}
                         className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow flex items-center gap-1">
-                        <i data-lucide="file-text" className="w-4 h-4"></i>
+                        <Icon name="file-text" className="w-4 h-4" />
                         Reportes
                     </button>
                     <button onClick={onAsistencia}
                         className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-orange-700 transition-all shadow flex items-center gap-1">
-                        <i data-lucide="clipboard-check" className="w-4 h-4"></i>
+                        <Icon name="clipboard-check" className="w-4 h-4" />
                         Registrar Asistencia
                     </button>
                     <button onClick={() => setShowForm(!showForm)}
                         className="bg-green-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-800 transition-all shadow flex items-center gap-1">
-                        <i data-lucide="plus" className="w-4 h-4"></i>
+                        <Icon name="plus" className="w-4 h-4" />
                         Nueva Categoria
                     </button>
                 </div>
@@ -159,7 +151,10 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
             {/* Grilla de categorias */}
             {categorias.length === 0 ? (
                 <div className="text-center py-16">
-                    <i data-lucide="building-2" className="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+                    <Icon
+                        name="building-2"
+                        className="w-16 h-16 text-slate-300 mx-auto mb-4"
+                    />
                     <p className="text-slate-500 font-bold text-lg">No hay categorias registradas</p>
                     <p className="text-slate-400 text-sm mt-1">Crea categorias para los departamentos del pueblo</p>
                 </div>
@@ -169,12 +164,15 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
                         <div key={cat.id}
                             className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center justify-between hover:shadow-md transition-all">
                             <div className="flex items-center gap-3">
-                                <i data-lucide="building-2" className="w-5 h-5 text-orange-600"></i>
+                                <Icon
+                                    name="building-2"
+                                    className="w-5 h-5 text-orange-600"
+                                />
                                 <span className="font-bold text-slate-800">{cat.nombre}</span>
                             </div>
                             <button onClick={() => handleDelete(cat.id)}
                                 className="text-red-400 hover:text-red-600 p-1">
-                                <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                <Icon name="trash-2" className="w-4 h-4" />
                             </button>
                         </div>
                     ))}
@@ -188,7 +186,8 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
 // VistaAsistenciaPueblo: Registro de asistencia para el pueblo
 // Permite seleccionar categoria, cantidad de personas y servicio
 // ---------------------------------------------------------------------------
-function VistaAsistenciaPueblo({ categorias, fecha, setFecha, usuario, onBack }) {
+function VistaAsistenciaPueblo({ categorias, fecha, setFecha, onBack }) {
+    const { notify } = window.useFeedback();
     const [categoriaId, setCategoriaId] = useState('');
     const [cantidad, setCantidad] = useState(1);
     const [servicio, setServicio] = useState('Unico');
@@ -198,7 +197,7 @@ function VistaAsistenciaPueblo({ categorias, fecha, setFecha, usuario, onBack })
     const handleGuardar = async (e) => {
         e.preventDefault();
         if (!categoriaId) {
-            alert('Selecciona una categoria');
+            notify('Selecciona una categoría.', { variant: 'warning' });
             return;
         }
         setGuardando(true);
@@ -210,12 +209,12 @@ function VistaAsistenciaPueblo({ categorias, fecha, setFecha, usuario, onBack })
                 cantidad: parseInt(cantidad),
                 servicio: servicio
             });
-            alert('Asistencia registrada correctamente');
+            notify('Asistencia registrada correctamente.', { variant: 'success' });
             setCantidad(1);
             setCategoriaId('');
         } catch (error) {
             // Muestra el motivo del rechazo y mantiene los valores capturados para corregirlos.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         } finally {
             setGuardando(false);
         }
@@ -225,7 +224,7 @@ function VistaAsistenciaPueblo({ categorias, fecha, setFecha, usuario, onBack })
         <div>
             <div className="flex items-center gap-3 mb-6">
                 <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                    <i data-lucide="arrow-left" className="w-5 h-5"></i>
+                    <Icon name="arrow-left" className="w-5 h-5" />
                 </button>
                 <h2 className="text-lg font-black text-slate-800">Registrar Asistencia del Pueblo</h2>
             </div>
@@ -291,6 +290,7 @@ function VistaAsistenciaPueblo({ categorias, fecha, setFecha, usuario, onBack })
 // Permite filtrar por fecha y categoria, y exportar a PDF
 // ---------------------------------------------------------------------------
 function VistaReportesPueblo({ categorias, onBack }) {
+    const { notify } = window.useFeedback();
     const [reportes, setReportes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fechaFiltro, setFechaFiltro] = useState('');
@@ -307,7 +307,7 @@ function VistaReportesPueblo({ categorias, onBack }) {
             setReportes(data || []);
         } catch (error) {
             // Diferencia filtros inválidos y desconexión sin dejar la vista cargando.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         } finally {
             setLoading(false);
         }
@@ -317,7 +317,7 @@ function VistaReportesPueblo({ categorias, onBack }) {
         <div>
             <div className="flex items-center gap-3 mb-6">
                 <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                    <i data-lucide="arrow-left" className="w-5 h-5"></i>
+                    <Icon name="arrow-left" className="w-5 h-5" />
                 </button>
                 <h2 className="text-lg font-black text-slate-800">Reportes del Pueblo</h2>
             </div>
@@ -342,7 +342,7 @@ function VistaReportesPueblo({ categorias, onBack }) {
                     </div>
                     <button onClick={handleBuscar}
                         className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow">
-                        <i data-lucide="search" className="w-4 h-4 inline mr-1"></i>
+                        <Icon name="search" className="w-4 h-4 inline mr-1" />
                         Buscar
                     </button>
                 </div>
@@ -353,7 +353,10 @@ function VistaReportesPueblo({ categorias, onBack }) {
                 <p className="text-center text-slate-600 font-bold py-12 animate-pulse">Cargando reportes...</p>
             ) : reportes.length === 0 ? (
                 <div className="text-center py-12">
-                    <i data-lucide="file-text" className="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+                    <Icon
+                        name="file-text"
+                        className="w-16 h-16 text-slate-300 mx-auto mb-4"
+                    />
                     <p className="text-slate-500 font-bold">No se encontraron registros</p>
                     <p className="text-slate-400 text-sm mt-1">Usa los filtros para buscar asistencias</p>
                 </div>

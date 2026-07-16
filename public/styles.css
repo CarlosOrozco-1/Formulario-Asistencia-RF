@@ -62,6 +62,19 @@ body,
     outline-offset: 3px;
 }
 
+/* Conserva tamaño, color y alineación de Lucide sin mutar nodos administrados por React. */
+.ui-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.ui-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
 /* Define la API visual compartida de botones. */
 .ui-button {
     display: inline-flex;
@@ -417,13 +430,215 @@ body,
 }
 
 .ui-toast {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
     padding: var(--space-4);
     color: #ffffff;
-    background-color: var(--color-ink);
+    background-color: var(--color-info);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     font-size: 0.875rem;
     font-weight: 700;
+}
+
+/* Reserva un color semántico estable para cada resultado anunciado. */
+.ui-toast--success {
+    background-color: var(--color-success);
+}
+
+.ui-toast--warning {
+    background-color: var(--color-warning);
+}
+
+.ui-toast--danger {
+    background-color: var(--color-danger);
+}
+
+.ui-toast span {
+    flex: 1;
+}
+
+.ui-toast button {
+    display: grid;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: var(--radius-sm);
+}
+
+.ui-toast button:hover {
+    background-color: rgb(255 255 255 / 0.16);
+}
+
+/* Estructura persistente para identidad, navegación y contenido autenticado. */
+.app-shell {
+    min-height: 100vh;
+    padding-bottom: 5rem;
+    background-color: var(--color-canvas);
+}
+
+.app-shell__header {
+    position: sticky;
+    z-index: 30;
+    top: 0;
+    background-color: rgb(255 255 255 / 0.96);
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(12px);
+}
+
+.app-shell__header-row {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+    width: min(100% - 2rem, 72rem);
+    min-height: 4.5rem;
+    margin: auto;
+}
+
+.app-shell__brand {
+    display: inline-flex;
+    gap: var(--space-3);
+    align-items: center;
+    color: var(--color-brand-700);
+    text-align: left;
+}
+
+.app-shell__brand span {
+    display: grid;
+}
+
+.app-shell__brand strong {
+    color: var(--color-ink);
+    font-size: 0.875rem;
+    font-weight: 900;
+}
+
+.app-shell__brand small {
+    color: var(--color-subtle);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.app-shell__desktop-nav {
+    display: none;
+    gap: var(--space-1);
+    align-items: center;
+}
+
+.app-shell__nav-link {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: 2.5rem;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-muted);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.app-shell__nav-link:hover,
+.app-shell__nav-link.is-active {
+    color: var(--color-brand-700);
+    background-color: var(--color-brand-50);
+}
+
+.app-shell__account {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.app-shell__user-name,
+.app-shell__logout-label {
+    display: none;
+}
+
+.app-shell__context {
+    width: min(100% - 2rem, 72rem);
+    padding: var(--space-3) 0 var(--space-4);
+    margin: auto;
+}
+
+.app-shell__breadcrumbs {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+    color: var(--color-subtle);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.app-shell__breadcrumbs button:hover {
+    color: var(--color-brand-700);
+}
+
+.app-shell__context h1 {
+    margin-top: var(--space-1);
+    color: var(--color-ink);
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+.app-shell__content {
+    min-height: calc(100vh - 8rem);
+}
+
+.app-shell__mobile-nav {
+    position: fixed;
+    z-index: 40;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    padding: var(--space-2);
+    padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
+    background-color: var(--color-surface);
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -8px 24px rgb(15 23 42 / 0.08);
+}
+
+.app-shell__mobile-link {
+    display: grid;
+    gap: var(--space-1);
+    justify-items: center;
+    min-height: 3.5rem;
+    padding: var(--space-2);
+    color: var(--color-subtle);
+    border-radius: var(--radius-md);
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.app-shell__mobile-link.is-active {
+    color: var(--color-brand-700);
+    background-color: var(--color-brand-50);
+}
+
+/* Amplía la navegación y libera el pie fijo en pantallas de escritorio. */
+@media (min-width: 768px) {
+    .app-shell {
+        padding-bottom: 0;
+    }
+
+    .app-shell__desktop-nav {
+        display: flex;
+    }
+
+    .app-shell__mobile-nav {
+        display: none;
+    }
+
+    .app-shell__user-name,
+    .app-shell__logout-label {
+        display: inline;
+    }
 }
 
 /* Da identidad propia al acceso sin introducir valores visuales aislados. */

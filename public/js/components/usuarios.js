@@ -2,8 +2,9 @@
 // CRUD completo: listar, crear, editar, desactivar y cambiar contrasena
 const { useState, useEffect } = React;
 const { api } = window;
+const { Button, Icon, StatusState } = window.UI;
 
-window.UsuariosComponent = function({ usuario, onBack }) {
+window.UsuariosComponent = function UsuariosComponent({ usuario }) {
     const [usuarios, setUsuarios] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -18,56 +19,43 @@ window.UsuariosComponent = function({ usuario, onBack }) {
     // Si no es admin, muestra mensaje de acceso denegado
     if (usuario.rol !== 'admin') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="text-center">
-                    <i data-lucide="shield-off" className="w-16 h-16 text-red-400 mx-auto mb-4"></i>
-                    <p className="text-lg font-black text-slate-700">Acceso Denegado</p>
-                    <p className="text-slate-500 text-sm mt-1">Solo administradores pueden gestionar usuarios</p>
-                    <button onClick={onBack}
-                        className="mt-4 bg-slate-200 text-slate-600 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-300 transition-all">
-                        Volver al Dashboard
-                    </button>
-                </div>
-            </div>
+            <StatusState
+                type="error"
+                title="Acceso restringido"
+                description="Solo administradores pueden gestionar usuarios."
+                actions={(
+                    <Button onClick={() => window.AppNavigation.navigate('dashboard')}>
+                        Volver al inicio
+                    </Button>
+                )}
+            />
         );
     }
 
     // Mientras carga
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <p className="text-slate-600 font-bold animate-pulse">Cargando usuarios...</p>
-            </div>
+            <StatusState
+                type="loading"
+                title="Cargando usuarios"
+                description="Estamos preparando las cuentas del sistema."
+            />
         );
     }
 
     // Renderizado principal
     return (
-        <div className="min-h-screen bg-slate-50">
-            <header className="bg-white shadow-sm border-b border-slate-200">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                            <i data-lucide="arrow-left" className="w-6 h-6"></i>
-                        </button>
-                        <i data-lucide="users" className="text-blue-700 w-8 h-8"></i>
-                        <h1 className="text-xl font-black text-slate-800">Usuarios</h1>
-                    </div>
-                    <span className="text-sm font-bold text-slate-500">Admin: {usuario.nombre}</span>
-                </div>
-            </header>
-
-            <main className="max-w-6xl mx-auto px-4 py-6">
-                <VistaListaUsuarios usuarios={usuarios} setUsuarios={setUsuarios} usuario={usuario} />
-            </main>
-        </div>
+        <main className="max-w-6xl mx-auto px-4 py-6">
+            <VistaListaUsuarios usuarios={usuarios} setUsuarios={setUsuarios} />
+        </main>
     );
 };
 
 // ---------------------------------------------------------------------------
 // VistaListaUsuarios: Tabla con todos los usuarios y acciones CRUD
 // ---------------------------------------------------------------------------
-function VistaListaUsuarios({ usuarios, setUsuarios, usuario }) {
+function VistaListaUsuarios({ usuarios, setUsuarios }) {
+    const { notify, confirm } = window.useFeedback();
     const [showForm, setShowForm] = useState(false);
     const [editId, setEditId] = useState(null);
 
@@ -112,7 +100,10 @@ function VistaListaUsuarios({ usuarios, setUsuarios, usuario }) {
                 setUsuarios(data || []);
             } else {
                 // Crea nuevo usuario
-                if (!password.trim()) { alert('La contrasena es requerida'); return; }
+                if (!password.trim()) {
+                    notify('La contraseña es requerida.', { variant: 'warning' });
+                    return;
+                }
                 await api.createUsuario({
                     username: username.trim(),
                     password: password.trim(),
@@ -126,20 +117,27 @@ function VistaListaUsuarios({ usuarios, setUsuarios, usuario }) {
             resetForm();
         } catch (error) {
             // Mantiene el formulario abierto y presenta el mensaje contractual de la API.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
     // Desactiva un usuario
     const handleDelete = async (id) => {
-        if (!confirm('¿Desactivar este usuario?')) return;
+        const accepted = await confirm({
+            title: 'Desactivar usuario',
+            description: 'El usuario ya no podrá iniciar una nueva sesión.',
+            confirmLabel: 'Desactivar usuario',
+            danger: true
+        });
+        if (!accepted) return;
         try {
             await api.deleteUsuario(id);
             const data = await api.getUsuarios();
             setUsuarios(data || []);
+            notify('El usuario fue desactivado.', { variant: 'success' });
         } catch (error) {
             // Conserva la fila cuando el servidor no confirmó la desactivación.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
@@ -150,7 +148,7 @@ function VistaListaUsuarios({ usuarios, setUsuarios, usuario }) {
                 <h2 className="text-lg font-black text-slate-700">Gestion de Usuarios</h2>
                 <button onClick={() => { resetForm(); setShowForm(!showForm); }}
                     className="bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all shadow flex items-center gap-1">
-                    <i data-lucide="user-plus" className="w-4 h-4"></i>
+                    <Icon name="user-plus" className="w-4 h-4" />
                     Nuevo Usuario
                 </button>
             </div>
@@ -241,12 +239,12 @@ function VistaListaUsuarios({ usuarios, setUsuarios, usuario }) {
                                     <button onClick={() => handleEdit(u)}
                                         className="text-blue-600 hover:text-blue-800 p-1 mr-2"
                                         title="Editar">
-                                        <i data-lucide="edit" className="w-4 h-4"></i>
+                                        <Icon name="edit" className="w-4 h-4" />
                                     </button>
                                     <button onClick={() => handleDelete(u.id)}
                                         className="text-red-600 hover:text-red-800 p-1"
                                         title="Desactivar">
-                                        <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                        <Icon name="trash-2" className="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>

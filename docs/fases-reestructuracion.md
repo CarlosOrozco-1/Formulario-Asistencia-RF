@@ -26,7 +26,7 @@ y documentado.
 | 2 | Contratos HTTP y manejo de errores | Completada | Fase 1 |
 | 3 | Separación por capas del backend | Completada | Fase 2 |
 | 4 | Fundamentos del sistema de diseño | Completada | Fase 1 |
-| 5 | Shell, navegación y sesión del frontend | Pendiente | Fases 2 y 4 |
+| 5 | Shell, navegación y sesión del frontend | Completada | Fases 2 y 4 |
 | 6 | Refactorización de módulos funcionales | Pendiente | Fases 3 y 5 |
 | 7 | Responsividad y accesibilidad | Pendiente | Fase 6 |
 | 8 | Pruebas y automatización de calidad | Pendiente | Fases 3 a 7 |
@@ -271,6 +271,27 @@ Centralizar las responsabilidades globales de la SPA y establecer una navegació
 - Una URL inválida muestra una salida clara hacia el dashboard.
 - El layout presenta usuario, rol y cierre de sesión de manera consistente.
 - Los permisos de navegación coinciden con los permisos de la API.
+
+### Resultado de implementación
+
+- La sesión se centralizó en `useSession` con estados explícitos y recuperación.
+- El catálogo de rutas concentra títulos, iconos y roles permitidos.
+- `AppShell` presenta identidad, usuario, rol, logout, breadcrumbs y navegación compartida.
+- La navegación de escritorio y móvil se genera desde el mismo catálogo autorizado.
+- Las URLs inválidas y los accesos sin rol muestran salidas recuperables.
+- El historial del navegador funciona para avanzar y regresar entre módulos principales.
+- `FeedbackProvider` centraliza notificaciones y confirmaciones de todos los módulos.
+- Se eliminaron los encabezados repetidos y los usos nativos de `alert` y `confirm`.
+- Los iconos Lucide se renderizan sin mutar nodos administrados por React.
+- El detalle técnico se conserva en `docs/fases/fase-5-shell-navegacion-sesion.md`.
+
+### Evidencia de verificación
+
+- Análisis JSX de aplicación, hooks, shell, proveedor y módulos modificados.
+- Navegación automatizada en Chromium entre rutas y mediante atrás del navegador.
+- Verificación de ruta inexistente, permisos administrativos y navegación móvil.
+- Pruebas de notificaciones, confirmación y ausencia de diálogos nativos.
+- Construcción y ejecución correctas en Docker con Node.js 20.
 
 ## Fase 6: Refactorización de módulos funcionales
 

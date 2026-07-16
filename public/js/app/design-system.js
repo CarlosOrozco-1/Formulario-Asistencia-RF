@@ -16,11 +16,6 @@ function DesignSystemReference() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
 
-    // Actualiza iconos que fueron incorporados por los componentes declarativos.
-    useEffect(() => {
-        if (window.lucide) window.lucide.createIcons();
-    });
-
     // Retira la notificación de ejemplo para reproducir su comportamiento temporal.
     useEffect(() => {
         if (!toastMessage) return undefined;

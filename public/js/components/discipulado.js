@@ -3,8 +3,9 @@
 // registrar asistencia diaria y exportar reportes PDF
 const { useState, useEffect } = React;
 const { api, helpers } = window;
+const { Icon, StatusState } = window.UI;
 
-window.DiscipuladoComponent = function({ usuario, onBack }) {
+window.DiscipuladoComponent = function DiscipuladoComponent() {
     // Estados principales del componente
     const [grupos, setGrupos] = useState([]);           // Lista de grupos de discipulado
     const [grupoActivo, setGrupoActivo] = useState(null); // Grupo seleccionado actualmente
@@ -26,32 +27,17 @@ window.DiscipuladoComponent = function({ usuario, onBack }) {
     // Mientras se cargan los datos iniciales
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <p className="text-slate-600 font-bold animate-pulse">Cargando grupos...</p>
-            </div>
+            <StatusState
+                type="loading"
+                title="Cargando grupos"
+                description="Estamos preparando la información de discipulado."
+            />
         );
     }
 
     // Renderizado principal segun la vista activa
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Header del modulo */}
-            <header className="bg-white shadow-sm border-b border-slate-200">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                            <i data-lucide="arrow-left" className="w-6 h-6"></i>
-                        </button>
-                        <i data-lucide="book-open" className="text-purple-700 w-8 h-8"></i>
-                        <h1 className="text-xl font-black text-slate-800">Discipulado</h1>
-                    </div>
-                    <span className="text-sm font-bold text-slate-500">
-                        {usuario.nombre}
-                    </span>
-                </div>
-            </header>
-
-            <main className="max-w-6xl mx-auto px-4 py-6">
+        <main className="max-w-6xl mx-auto px-4 py-6">
                 {/* Navegacion entre vistas del modulo */}
                 {vista === 'grupos' && (
                     <VistaGrupos
@@ -82,7 +68,6 @@ window.DiscipuladoComponent = function({ usuario, onBack }) {
                         setFecha={setFecha}
                         asistencias={asistencias}
                         setAsistencias={setAsistencias}
-                        usuario={usuario}
                         onBack={() => setVista('miembros')}
                     />
                 )}
@@ -92,8 +77,7 @@ window.DiscipuladoComponent = function({ usuario, onBack }) {
                         onBack={() => setVista('miembros')}
                     />
                 )}
-            </main>
-        </div>
+        </main>
     );
 };
 
@@ -101,6 +85,7 @@ window.DiscipuladoComponent = function({ usuario, onBack }) {
 // VistaGrupos: Listado de grupos con opciones de crear, editar y eliminar
 // ---------------------------------------------------------------------------
 function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
+    const { notify, confirm } = window.useFeedback();
     const [showForm, setShowForm] = useState(false);
     const [nombre, setNombre] = useState('');
     const [lugar, setLugar] = useState('');
@@ -121,19 +106,26 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
             setShowForm(false);
         } catch (error) {
             // Mantiene el formulario abierto y explica el rechazo recibido desde la API.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
     // Elimina (desactiva) un grupo
     const handleDelete = async (id) => {
-        if (!confirm('¿Eliminar este grupo? Los integrantes no se perderan.')) return;
+        const accepted = await confirm({
+            title: 'Eliminar grupo',
+            description: 'El grupo se retirará, pero sus integrantes no se perderán.',
+            confirmLabel: 'Eliminar grupo',
+            danger: true
+        });
+        if (!accepted) return;
         try {
             await api.deleteGrupo(id);
             setGrupos(grupos.filter(g => g.id !== id));
+            notify('El grupo fue eliminado.', { variant: 'success' });
         } catch (error) {
             // Evita retirar visualmente un grupo cuando el servidor rechazó la eliminación.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
@@ -144,7 +136,7 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
                 <h2 className="text-lg font-black text-slate-700">Grupos de Discipulado</h2>
                 <button onClick={() => setShowForm(!showForm)}
                     className="bg-purple-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-purple-800 transition-all flex items-center gap-2 shadow">
-                    <i data-lucide="plus" className="w-4 h-4"></i>
+                    <Icon name="plus" className="w-4 h-4" />
                     Nuevo Grupo
                 </button>
             </div>
@@ -182,7 +174,10 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
             {/* Grilla de grupos */}
             {grupos.length === 0 ? (
                 <div className="text-center py-16">
-                    <i data-lucide="book-open" className="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+                    <Icon
+                        name="book-open"
+                        className="w-16 h-16 text-slate-300 mx-auto mb-4"
+                    />
                     <p className="text-slate-500 font-bold text-lg">No hay grupos de discipulado</p>
                     <p className="text-slate-400 text-sm mt-1">Crea tu primer grupo para comenzar</p>
                 </div>
@@ -196,14 +191,17 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
                                     <h3 className="font-black text-slate-800 text-lg">{grupo.nombre}</h3>
                                     {grupo.lugar && (
                                         <p className="text-sm text-slate-500 font-bold mt-1">
-                                            <i data-lucide="map-pin" className="w-3 h-3 inline mr-1"></i>
+                                            <Icon
+                                                name="map-pin"
+                                                className="w-3 h-3 inline mr-1"
+                                            />
                                             {grupo.lugar}
                                         </p>
                                     )}
                                 </div>
                                 <button onClick={() => handleDelete(grupo.id)}
                                     className="text-red-400 hover:text-red-600 p-1">
-                                    <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                    <Icon name="trash-2" className="w-4 h-4" />
                                 </button>
                             </div>
                             <div className="mt-4 flex items-center justify-between">
@@ -212,7 +210,7 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
                             </div>
                             <button onClick={() => onSelectGrupo(grupo)}
                                 className="mt-4 w-full bg-purple-50 text-purple-700 py-2.5 rounded-xl font-bold text-sm hover:bg-purple-100 transition-all">
-                                <i data-lucide="arrow-right" className="w-4 h-4 inline mr-1"></i>
+                                <Icon name="arrow-right" className="w-4 h-4 inline mr-1" />
                                 Gestionar Grupo
                             </button>
                         </div>
@@ -227,6 +225,7 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
 // VistaMiembros: Lista de integrantes del grupo seleccionado
 // ---------------------------------------------------------------------------
 function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onHistorial }) {
+    const { notify, confirm } = window.useFeedback();
     const [showForm, setShowForm] = useState(false);
     const [nombre, setNombre] = useState('');
 
@@ -250,19 +249,26 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
             setShowForm(false);
         } catch (error) {
             // Conserva la captura del integrante cuando la API devuelve validación o conflicto.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
     // Elimina un integrante del grupo
     const handleRemove = async (id) => {
-        if (!confirm('¿Eliminar este integrante?')) return;
+        const accepted = await confirm({
+            title: 'Eliminar integrante',
+            description: 'El integrante se retirará del grupo seleccionado.',
+            confirmLabel: 'Eliminar integrante',
+            danger: true
+        });
+        if (!accepted) return;
         try {
             await api.deleteMiembro(id);
             setMiembros(miembros.filter(m => m.id !== id));
+            notify('El integrante fue eliminado.', { variant: 'success' });
         } catch (error) {
             // Mantiene el integrante visible si existen relaciones que impiden eliminarlo.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
@@ -272,7 +278,7 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                        <i data-lucide="arrow-left" className="w-5 h-5"></i>
+                        <Icon name="arrow-left" className="w-5 h-5" />
                     </button>
                     <div>
                         <h2 className="text-lg font-black text-slate-800">{grupo.nombre}</h2>
@@ -282,12 +288,12 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
                 <div className="flex gap-2">
                     <button onClick={onHistorial}
                         className="bg-slate-200 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-300 transition-all">
-                        <i data-lucide="history" className="w-4 h-4 inline mr-1"></i>
+                        <Icon name="history" className="w-4 h-4 inline mr-1" />
                         Historial
                     </button>
                     <button onClick={() => setShowForm(!showForm)}
                         className="bg-purple-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-purple-800 transition-all shadow">
-                        <i data-lucide="user-plus" className="w-4 h-4 inline mr-1"></i>
+                        <Icon name="user-plus" className="w-4 h-4 inline mr-1" />
                         Agregar
                     </button>
                 </div>
@@ -318,14 +324,17 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
             {/* Boton para ir a registrar asistencia */}
             <button onClick={onAsistencia}
                 className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 rounded-2xl font-black text-lg mb-6 hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2">
-                <i data-lucide="clipboard-check" className="w-6 h-6"></i>
+                <Icon name="clipboard-check" className="w-6 h-6" />
                 Registrar Asistencia - {new Date().toLocaleDateString('es-MX')}
             </button>
 
             {/* Lista de integrantes */}
             {miembros.length === 0 ? (
                 <div className="text-center py-12">
-                    <i data-lucide="users" className="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+                    <Icon
+                        name="users"
+                        className="w-16 h-16 text-slate-300 mx-auto mb-4"
+                    />
                     <p className="text-slate-500 font-bold">Este grupo no tiene integrantes</p>
                     <p className="text-slate-400 text-sm mt-1">Agrega integrantes para registrar asistencia</p>
                 </div>
@@ -340,7 +349,7 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
                             </div>
                             <button onClick={() => handleRemove(m.id)}
                                 className="text-red-400 hover:text-red-600 p-1">
-                                <i data-lucide="x" className="w-4 h-4"></i>
+                                <Icon name="x" className="w-4 h-4" />
                             </button>
                         </div>
                     ))}
@@ -353,7 +362,17 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
 // ---------------------------------------------------------------------------
 // VistaAsistencia: Registro de asistencia del dia para el grupo seleccionado
 // ---------------------------------------------------------------------------
-function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asistencias, setAsistencias, usuario, onBack }) {
+function VistaAsistencia({
+    grupo,
+    miembros,
+    setMiembros,
+    fecha,
+    setFecha,
+    asistencias,
+    setAsistencias,
+    onBack
+}) {
+    const { notify } = window.useFeedback();
     // Estados de asistencia para cada miembro
     const [estados, setEstados] = useState({});
 
@@ -387,11 +406,11 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
                     estado: estados[miembro.id] || 'ausente'
                 }))
             });
-            alert('Asistencia guardada correctamente');
+            notify('Asistencia guardada correctamente.', { variant: 'success' });
             onBack();
         } catch (error) {
             // Informa el fallo sin afirmar que el registro completo fue guardado.
-            alert(api.getErrorMessage(error));
+            notify(api.getErrorMessage(error), { variant: 'danger' });
         }
     };
 
@@ -425,7 +444,7 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                        <i data-lucide="arrow-left" className="w-5 h-5"></i>
+                        <Icon name="arrow-left" className="w-5 h-5" />
                     </button>
                     <div>
                         <h2 className="text-lg font-black text-slate-800">Asistencia - {grupo.nombre}</h2>
@@ -439,15 +458,15 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
             {/* Barra de resumen de conteo */}
             <div className="flex gap-3 mb-6">
                 <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1">
-                    <i data-lucide="check-circle" className="w-3 h-3"></i>
+                    <Icon name="check-circle" className="w-3 h-3" />
                     {conteo.presente} Presentes
                 </span>
                 <span className="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1">
-                    <i data-lucide="clock" className="w-3 h-3"></i>
+                    <Icon name="clock" className="w-3 h-3" />
                     {conteo.reportado} Reportados
                 </span>
                 <span className="bg-red-100 text-red-700 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1">
-                    <i data-lucide="x-circle" className="w-3 h-3"></i>
+                    <Icon name="x-circle" className="w-3 h-3" />
                     {conteo.ausente} Ausentes
                 </span>
             </div>
@@ -469,7 +488,7 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
                                             ? colorEstado(est) + ' shadow-sm'
                                             : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
                                     }`}>
-                                    <i data-lucide={iconoEstado(est)} className="w-3 h-3"></i>
+                                    <Icon name={iconoEstado(est)} className="w-3 h-3" />
                                     {est.charAt(0).toUpperCase() + est.slice(1)}
                                 </button>
                             ))}
@@ -481,7 +500,7 @@ function VistaAsistencia({ grupo, miembros, setMiembros, fecha, setFecha, asiste
             {/* Boton para guardar */}
             <button onClick={handleGuardar}
                 className="w-full bg-purple-700 text-white py-4 rounded-2xl font-black text-lg hover:bg-purple-800 transition-all shadow-lg">
-                <i data-lucide="save" className="w-5 h-5 inline mr-2"></i>
+                <Icon name="save" className="w-5 h-5 inline mr-2" />
                 Guardar Asistencia
             </button>
         </div>
@@ -516,7 +535,7 @@ function VistaHistorial({ grupo, onBack }) {
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <button onClick={onBack} className="text-slate-600 hover:text-slate-800">
-                        <i data-lucide="arrow-left" className="w-5 h-5"></i>
+                        <Icon name="arrow-left" className="w-5 h-5" />
                     </button>
                     <h2 className="text-lg font-black text-slate-800">Historial - {grupo.nombre}</h2>
                 </div>
@@ -526,7 +545,10 @@ function VistaHistorial({ grupo, onBack }) {
 
             {historial.length === 0 ? (
                 <div className="text-center py-12">
-                    <i data-lucide="calendar" className="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+                    <Icon
+                        name="calendar"
+                        className="w-16 h-16 text-slate-300 mx-auto mb-4"
+                    />
                     <p className="text-slate-500 font-bold">No hay asistencias registradas</p>
                 </div>
             ) : (

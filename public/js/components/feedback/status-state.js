@@ -8,6 +8,7 @@ window.UI.StatusState = function StatusState({
     actions,
     fullPage = false
 }) {
+    const { Icon } = window.UI;
     const icons = {
         empty: 'inbox',
         error: 'circle-alert'
@@ -20,7 +21,7 @@ window.UI.StatusState = function StatusState({
             {type === 'loading' ? (
                 <span className="ui-spinner" aria-hidden="true" />
             ) : (
-                <i data-lucide={icons[type] || icons.empty} className="ui-status__icon" />
+                <Icon name={icons[type] || icons.empty} className="ui-status__icon" />
             )}
             <h2 className="ui-status__title">{title}</h2>
             {description && <p className="ui-status__description">{description}</p>}

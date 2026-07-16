@@ -1,11 +1,11 @@
 // Componente Dashboard - Resumen de asistencias y navegacion principal
 const { useState, useEffect } = React;
 const { api, CONFIG } = window;
+const { Icon, StatusState } = window.UI;
 
-window.DashboardComponent = function({ usuario, onLogout }) {
+window.DashboardComponent = function({ usuario }) {
     const [resumen, setResumen] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [vista, setVista] = useState('dashboard');
 
     // Cargar resumen al montar el componente
     useEffect(() => {
@@ -18,60 +18,34 @@ window.DashboardComponent = function({ usuario, onLogout }) {
     // Mientras carga
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-slate-600 font-bold animate-pulse">Cargando resumen...</p>
-            </div>
+            <StatusState
+                type="loading"
+                title="Cargando resumen"
+                description="Estamos preparando los indicadores del día."
+            />
         );
     }
 
     // Si no hay resumen (error)
     if (!resumen) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-red-600 font-bold">Error al cargar el resumen</p>
-            </div>
+            <StatusState
+                type="error"
+                title="No fue posible cargar el resumen"
+                description="Actualiza la página para volver a intentarlo."
+            />
         );
     }
 
-    return <DashboardView resumen={resumen} usuario={usuario} onLogout={onLogout} />;
+    return <DashboardView resumen={resumen} usuario={usuario} />;
 };
 
 /**
  * Vista del dashboard con resumen de asistencias y acceso a modulos
  */
-function DashboardView({ resumen, usuario, onLogout }) {
+function DashboardView({ resumen, usuario }) {
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Header con info del usuario */}
-            <header className="bg-white shadow-sm border-b border-slate-200">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <i
-                            data-lucide="calendar-check"
-                            className="text-blue-700 w-8 h-8"
-                        ></i>
-                        <div>
-                            <h1 className="text-lg font-black text-slate-800">
-                                Gestión de Asistencia
-                            </h1>
-                            <p className="text-xs text-slate-500 font-bold">Panel de control</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <span className="text-sm font-bold text-slate-600">
-                            <i data-lucide="user" className="w-4 h-4 inline mr-1"></i>
-                            {usuario.nombre}
-                        </span>
-                        <button onClick={onLogout}
-                            className="text-sm font-bold text-red-600 hover:text-red-700 flex items-center gap-1">
-                            <i data-lucide="log-out" className="w-4 h-4"></i>
-                            Salir
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <main className="max-w-6xl mx-auto px-4 py-8">
+        <main className="max-w-6xl mx-auto px-4 py-8">
                 {/* Tarjetas de resumen */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <TarjetaResumen
@@ -104,7 +78,7 @@ function DashboardView({ resumen, usuario, onLogout }) {
                 {resumen.grupos && resumen.grupos.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-lg font-black text-slate-700 mb-3 flex items-center gap-2">
-                            <i data-lucide="layers" className="w-5 h-5 text-purple-600"></i>
+                            <Icon name="layers" className="w-5 h-5 text-purple-600" />
                             Grupos de Discipulado
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -114,7 +88,10 @@ function DashboardView({ resumen, usuario, onLogout }) {
                                     <h3 className="font-black text-slate-800">{grupo.nombre}</h3>
                                     {grupo.lugar && (
                                         <p className="text-xs text-slate-500 font-bold mt-1">
-                                            <i data-lucide="map-pin" className="w-3 h-3 inline mr-1"></i>
+                                            <Icon
+                                                name="map-pin"
+                                                className="w-3 h-3 inline mr-1"
+                                            />
                                             {grupo.lugar}
                                         </p>
                                     )}
@@ -130,7 +107,7 @@ function DashboardView({ resumen, usuario, onLogout }) {
                 {resumen.categorias && resumen.categorias.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-lg font-black text-slate-700 mb-3 flex items-center gap-2">
-                            <i data-lucide="building-2" className="w-5 h-5 text-orange-600"></i>
+                            <Icon name="building-2" className="w-5 h-5 text-orange-600" />
                             Categorias del Pueblo
                         </h2>
                         <div className="flex flex-wrap gap-2">
@@ -153,14 +130,14 @@ function DashboardView({ resumen, usuario, onLogout }) {
                             titulo="Discipulado"
                             descripcion="Gestion de grupos, integrantes y registro de asistencia"
                             color="purple"
-                            onClick={() => window.location.hash = '#discipulado'}
+                            onClick={() => window.AppNavigation.navigate('discipulado')}
                         />
                         <ModuloCard
                             icon="building"
                             titulo="Pueblo"
                             descripcion="Registro de asistencia del pueblo por categorias"
                             color="orange"
-                            onClick={() => window.location.hash = '#pueblo'}
+                            onClick={() => window.AppNavigation.navigate('pueblo')}
                         />
                         {usuario.rol === 'admin' && (
                             <ModuloCard
@@ -168,13 +145,12 @@ function DashboardView({ resumen, usuario, onLogout }) {
                                 titulo="Usuarios"
                                 descripcion="Gestion de usuarios del sistema (solo admin)"
                                 color="green"
-                                onClick={() => window.location.hash = '#usuarios'}
+                                onClick={() => window.AppNavigation.navigate('usuarios')}
                             />
                         )}
                     </div>
                 </section>
-            </main>
-        </div>
+        </main>
     );
 }
 
@@ -192,7 +168,7 @@ function TarjetaResumen({ icon, label, valor, color }) {
     return (
         <div className={`rounded-2xl border p-5 ${colores[color] || colores.blue}`}>
             <div className="flex items-center gap-3">
-                <i data-lucide={icon} className="w-8 h-8 opacity-70"></i>
+                <Icon name={icon} className="w-8 h-8 opacity-70" />
                 <div>
                     <p className="text-xs font-black uppercase tracking-wider opacity-70">{label}</p>
                     <p className="text-3xl font-black mt-0.5">{valor}</p>
@@ -215,7 +191,7 @@ function ModuloCard({ icon, titulo, descripcion, color, onClick }) {
     return (
         <button onClick={onClick}
             className={`bg-gradient-to-br ${colores[color] || colores.green} rounded-2xl p-6 text-white text-left shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]`}>
-            <i data-lucide={icon} className="w-10 h-10 mb-3 opacity-80"></i>
+            <Icon name={icon} className="w-10 h-10 mb-3 opacity-80" />
             <h3 className="text-xl font-black mb-1">{titulo}</h3>
             <p className="text-sm font-bold opacity-80">{descripcion}</p>
         </button>

@@ -1,7 +1,7 @@
 // Pantalla de acceso de la aplicación general Gestión de Asistencia.
 const { useState } = React;
 const { api } = window;
-const { Alert, Button, Card, Field } = window.UI;
+const { Alert, Button, Card, Field, Icon } = window.UI;
 
 // Permite informar una expiración de sesión dentro del mismo formulario recuperable.
 window.LoginComponent = function LoginComponent({ onLogin, mensajeInicial = '' }) {
@@ -34,8 +34,8 @@ window.LoginComponent = function LoginComponent({ onLogin, mensajeInicial = '' }
             {/* Presenta la identidad institucional sin duplicar controles operativos. */}
             <section className="login-brand hidden lg:flex items-center justify-center p-12">
                 <div className="relative z-10 max-w-lg text-center">
-                    <i
-                        data-lucide="clipboard-check"
+                    <Icon
+                        name="clipboard-check"
                         className="w-24 h-24 mx-auto mb-7 opacity-90"
                     />
                     <p className="text-sm font-black uppercase tracking-[0.28em] text-blue-200">
@@ -52,8 +52,8 @@ window.LoginComponent = function LoginComponent({ onLogin, mensajeInicial = '' }
             <section className="login-form-panel flex items-center justify-center p-5 sm:p-8">
                 <Card variant="elevated" className="w-full max-w-md">
                     <div className="text-center mb-7">
-                        <i
-                            data-lucide="clipboard-check"
+                        <Icon
+                            name="clipboard-check"
                             className="text-blue-700 w-12 h-12 mx-auto mb-3 lg:hidden"
                         />
                         <p className="text-xs font-black uppercase tracking-widest text-blue-700">

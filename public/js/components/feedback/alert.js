@@ -7,6 +7,7 @@ window.UI.Alert = function Alert({
     title,
     className = ''
 }) {
+    const { Icon } = window.UI;
     const icons = {
         info: 'info',
         success: 'circle-check',
@@ -19,7 +20,7 @@ window.UI.Alert = function Alert({
             className={`ui-alert ui-alert--${variant} ${className}`}
             role={variant === 'danger' ? 'alert' : 'status'}
         >
-            <i data-lucide={icons[variant] || icons.info} className="w-5 h-5 shrink-0" />
+            <Icon name={icons[variant] || icons.info} className="w-5 h-5 shrink-0" />
             <div>
                 {title && <p className="font-black">{title}</p>}
                 <div>{children}</div>

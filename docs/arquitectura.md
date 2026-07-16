@@ -35,8 +35,11 @@ La separación del frontend continúa en evolución:
 - Los componentes React todavía mezclan carga de datos, estado, navegación y presentación.
 - Existen componentes compartidos en `components/ui` y `components/feedback`.
 - El login y los estados globales de sesión ya consumen el sistema de diseño.
+- `useSession` y `useNavigation` centralizan identidad, rutas e historial.
+- `AppShell` comparte navegación, usuario, rol, contexto y cierre de sesión.
+- `FeedbackProvider` concentra notificaciones y confirmaciones.
 - Los módulos funcionales restantes conservan temporalmente estilos locales.
-- La navegación principal utiliza el hash de la URL y las subvistas usan estado local.
+- La navegación principal usa el hash y las subvistas funcionales conservan estado local.
 
 Las siguientes fases completarán las fronteras del frontend sin cambiar el tipo de arquitectura.
 
@@ -114,12 +117,14 @@ rutas, controladores o componentes del frontend.
 
 ### 1. Aplicación
 
-Inicializa React, restaura la sesión, define navegación y compone los proveedores globales.
+Inicializa React y compone los proveedores globales. Los hooks de aplicación restauran la
+sesión, resuelven navegación y aplican permisos de presentación.
 
 ### 2. Layout y componentes UI
 
 Contiene estructura visual compartida y componentes reutilizables como botones, campos,
-tarjetas, diálogos, alertas y estados de carga. Estos componentes no conocen endpoints.
+tarjetas, diálogos, alertas y estados de carga. `AppShell` recibe rutas e identidad, pero no
+conoce endpoints ni reglas internas de los módulos.
 
 ### 3. Módulos funcionales
 
@@ -145,6 +150,18 @@ El flujo permitido es:
 ```text
 Vista → Hook o caso de uso → Servicio API → API REST
 ```
+
+## Navegación, sesión y permisos del frontend
+
+- `useSession` es la única fuente de identidad autenticada en React.
+- `useNavigation` interpreta el hash y conserva el historial nativo del navegador.
+- El catálogo de rutas declara título, icono y roles visibles de cada módulo.
+- Ocultar una ruta no sustituye la autorización del backend; la API sigue validando roles.
+- Una URL inexistente conserva su dirección y muestra una salida hacia el dashboard.
+- Un acceso conocido sin rol suficiente muestra “Acceso restringido”.
+- El shell genera desde el mismo catálogo la navegación de escritorio y móvil.
+- Los módulos no deben crear encabezados, identidad o controles de logout propios.
+- Las notificaciones y confirmaciones se solicitan mediante `FeedbackProvider`.
 
 ## Estructura objetivo
 
