@@ -27,6 +27,10 @@ window.AppShell = function AppShell({
 
     return (
         <div className="app-shell">
+            {/* Permite saltar la cabecera y entrar directo al contenido principal con teclado. */}
+            <a className="app-shell__skip-link" href="#main-content">
+                Saltar al contenido
+            </a>
             <header className="app-shell__header">
                 <div className="app-shell__header-row">
                     <button
@@ -79,7 +83,9 @@ window.AppShell = function AppShell({
                 </div>
             </header>
 
-            <div className="app-shell__content">{children}</div>
+            <main id="main-content" className="app-shell__content">
+                {children}
+            </main>
 
             <nav className="app-shell__mobile-nav" aria-label="Navegación móvil">
                 {routes.map(item => (

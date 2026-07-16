@@ -241,6 +241,7 @@ function VistaGrupos({ grupos, setGrupos, onSelectGrupo }) {
                                     type="button"
                                     onClick={() => handleDelete(grupo.id)}
                                     className="p-1 text-red-400 hover:text-red-600"
+                                    aria-label={`Eliminar grupo ${grupo.nombre}`}
                                 >
                                     <Icon name="trash-2" className="h-4 w-4" />
                                 </button>
@@ -333,7 +334,12 @@ function VistaMiembros({ grupo, miembros, setMiembros, onBack, onAsistencia, onH
         <div>
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <button type="button" onClick={onBack} className="text-slate-600 hover:text-slate-800">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="text-slate-600 hover:text-slate-800"
+                        aria-label="Volver al listado de grupos"
+                    >
                         <Icon name="arrow-left" className="h-5 w-5" />
                     </button>
                     <div>
@@ -657,8 +663,8 @@ function VistaHistorial({ grupo, onBack }) {
                     <p className="font-bold text-slate-500">No hay asistencias registradas</p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <table className="w-full text-sm">
+                <div className="ui-table-shell">
+                    <table className="ui-table text-sm">
                         <thead className="border-b border-slate-200 bg-slate-50">
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-black uppercase text-slate-600">
@@ -675,11 +681,13 @@ function VistaHistorial({ grupo, onBack }) {
                         <tbody>
                             {historial.map(asistencia => (
                                 <tr key={asistencia.id} className="border-b border-slate-100">
-                                    <td className="px-4 py-3 font-bold text-slate-700">{asistencia.fecha}</td>
-                                    <td className="px-4 py-3 font-bold text-slate-800">
+                                    <td data-label="Fecha" className="font-bold text-slate-700">
+                                        {asistencia.fecha}
+                                    </td>
+                                    <td data-label="Miembro" className="font-bold text-slate-800">
                                         {asistencia.miembro_id}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td data-label="Estado">
                                         <span className={`rounded-lg px-2 py-1 text-xs font-bold ${
                                             asistencia.estado === 'presente'
                                                 ? 'bg-green-100 text-green-700'

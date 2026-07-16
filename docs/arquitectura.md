@@ -39,6 +39,7 @@ La separación del frontend continúa en evolución:
 - `AppShell` comparte navegación, usuario, rol, contexto y cierre de sesión.
 - `FeedbackProvider` concentra notificaciones y confirmaciones.
 - Los módulos funcionales ya se reorganizan bajo `public/js/features/`.
+- Las tablas y controles compartidos ya tienen una base responsiva para móvil y teclado.
 - La navegación principal usa el hash y las subvistas funcionales conservan estado local.
 
 Las siguientes fases completarán las fronteras del frontend sin cambiar el tipo de arquitectura.

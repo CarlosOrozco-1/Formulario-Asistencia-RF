@@ -237,8 +237,8 @@ function VistaListaUsuarios({ usuarios, setUsuarios }) {
                 </form>
             )}
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="w-full text-sm">
+            <div className="ui-table-shell">
+                <table className="ui-table text-sm">
                     <thead className="border-b border-slate-200 bg-slate-50">
                         <tr>
                             <th className="px-4 py-3 text-left text-xs font-black uppercase text-slate-600">
@@ -264,9 +264,13 @@ function VistaListaUsuarios({ usuarios, setUsuarios }) {
                     <tbody>
                         {usuarios.map(usuario => (
                             <tr key={usuario.id} className="border-b border-slate-100">
-                                <td className="px-4 py-3 font-bold text-slate-800">{usuario.username}</td>
-                                <td className="px-4 py-3 text-slate-700">{usuario.nombre}</td>
-                                <td className="px-4 py-3">
+                                <td data-label="Usuario" className="font-bold text-slate-800">
+                                    {usuario.username}
+                                </td>
+                                <td data-label="Nombre" className="text-slate-700">
+                                    {usuario.nombre}
+                                </td>
+                                <td data-label="Rol">
                                     <span className={`rounded-lg px-2 py-1 text-xs font-bold ${
                                         usuario.rol === 'admin'
                                             ? 'bg-purple-100 text-purple-700'
@@ -275,7 +279,7 @@ function VistaListaUsuarios({ usuarios, setUsuarios }) {
                                         {usuario.rol}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td data-label="Estado">
                                     <span className={`rounded-lg px-2 py-1 text-xs font-bold ${
                                         usuario.activo
                                             ? 'bg-green-100 text-green-700'
@@ -284,15 +288,16 @@ function VistaListaUsuarios({ usuarios, setUsuarios }) {
                                         {usuario.activo ? 'Activo' : 'Inactivo'}
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-xs text-slate-500">
+                                <td data-label="Último acceso" className="text-xs text-slate-500">
                                     {usuario.ultimo_acceso || '—'}
                                 </td>
-                                <td className="px-4 py-3 text-right">
+                                <td data-label="Acciones" className="text-right">
                                     <button
                                         type="button"
                                         onClick={() => handleEdit(usuario)}
                                         className="mr-2 p-1 text-blue-600 hover:text-blue-800"
                                         title="Editar"
+                                        aria-label={`Editar usuario ${usuario.username}`}
                                     >
                                         <Icon name="edit" className="h-4 w-4" />
                                     </button>
@@ -301,6 +306,7 @@ function VistaListaUsuarios({ usuarios, setUsuarios }) {
                                         onClick={() => handleDelete(usuario.id)}
                                         className="p-1 text-red-600 hover:text-red-800"
                                         title="Desactivar"
+                                        aria-label={`Desactivar usuario ${usuario.username}`}
                                     >
                                         <Icon name="trash-2" className="h-4 w-4" />
                                     </button>

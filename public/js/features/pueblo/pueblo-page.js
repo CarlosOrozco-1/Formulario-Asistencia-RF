@@ -209,6 +209,7 @@ function VistaCategorias({ categorias, setCategorias, onAsistencia, onReportes }
                                 type="button"
                                 onClick={() => handleDelete(categoria.id)}
                                 className="p-1 text-red-400 hover:text-red-600"
+                                aria-label={`Eliminar categoría ${categoria.nombre}`}
                             >
                                 <Icon name="trash-2" className="h-4 w-4" />
                             </button>
@@ -257,7 +258,12 @@ function VistaAsistenciaPueblo({ categorias, fecha, setFecha, onBack }) {
     return (
         <div>
             <div className="mb-6 flex items-center gap-3">
-                <button type="button" onClick={onBack} className="text-slate-600 hover:text-slate-800">
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="text-slate-600 hover:text-slate-800"
+                    aria-label="Volver a categorías"
+                >
                     <Icon name="arrow-left" className="h-5 w-5" />
                 </button>
                 <h2 className="text-lg font-black text-slate-800">Registrar Asistencia del Pueblo</h2>
@@ -373,7 +379,12 @@ function VistaReportesPueblo({ categorias, onBack }) {
     return (
         <div>
             <div className="mb-6 flex items-center gap-3">
-                <button type="button" onClick={onBack} className="text-slate-600 hover:text-slate-800">
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="text-slate-600 hover:text-slate-800"
+                    aria-label="Volver a categorías"
+                >
                     <Icon name="arrow-left" className="h-5 w-5" />
                 </button>
                 <h2 className="text-lg font-black text-slate-800">Reportes del Pueblo</h2>
@@ -431,8 +442,8 @@ function VistaReportesPueblo({ categorias, onBack }) {
                     <p className="mt-1 text-sm text-slate-400">Usa los filtros para buscar asistencias</p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <table className="w-full text-sm">
+                <div className="ui-table-shell">
+                    <table className="ui-table text-sm">
                         <thead className="border-b border-slate-200 bg-slate-50">
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-black uppercase text-slate-600">
@@ -452,16 +463,20 @@ function VistaReportesPueblo({ categorias, onBack }) {
                         <tbody>
                             {reportes.map(reporte => (
                                 <tr key={reporte.id} className="border-b border-slate-100">
-                                    <td className="px-4 py-3 font-bold text-slate-700">{reporte.fecha}</td>
-                                    <td className="px-4 py-3 font-bold text-slate-800">
+                                    <td data-label="Fecha" className="font-bold text-slate-700">
+                                        {reporte.fecha}
+                                    </td>
+                                    <td data-label="Categoría" className="font-bold text-slate-800">
                                         {reporte.categoria_nombre || '—'}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td data-label="Servicio">
                                         <span className="rounded-lg bg-blue-100 px-2 py-1 text-xs font-bold text-blue-700">
                                             {reporte.servicio || 'Unico'}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 font-black text-slate-800">{reporte.cantidad}</td>
+                                    <td data-label="Cantidad" className="font-black text-slate-800">
+                                        {reporte.cantidad}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

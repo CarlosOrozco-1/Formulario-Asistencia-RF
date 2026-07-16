@@ -28,7 +28,7 @@ y documentado.
 | 4 | Fundamentos del sistema de diseño | Completada | Fase 1 |
 | 5 | Shell, navegación y sesión del frontend | Completada | Fases 2 y 4 |
 | 6 | Refactorización de módulos funcionales | Completada | Fases 3 y 5 |
-| 7 | Responsividad y accesibilidad | Pendiente | Fase 6 |
+| 7 | Responsividad y accesibilidad | Completada | Fase 6 |
 | 8 | Pruebas y automatización de calidad | Pendiente | Fases 3 a 7 |
 | 9 | Seguridad, operación y documentación final | Pendiente | Fase 8 |
 
@@ -364,6 +364,23 @@ asistencia.
 - Los flujos críticos pueden completarse únicamente con teclado.
 - Las tablas conservan contexto y acciones en móvil.
 - Una auditoría de accesibilidad no presenta errores críticos conocidos.
+
+### Resultado de implementación
+
+- Se agregó un enlace de salto al contenido en el shell autenticado.
+- El contenido principal ahora se expone como `<main>` con un destino accesible para teclado.
+- Se definieron utilidades compartidas para tablas responsivas y texto oculto accesible.
+- Usuarios, Historial de Discipulado y Reportes del Pueblo usan tablas móviles apiladas.
+- Los botones solo con icono recibieron nombres accesibles explícitos.
+- El layout móvil ajusta el espacio de cabecera, contenido y navegación inferior.
+- El detalle técnico se documenta en `docs/fases/fase-7-responsividad-accesibilidad.md`.
+
+### Evidencia de verificación
+
+- Revisión de estilos compartidos y navegación del shell.
+- Revisión de tablas y controles solo con icono en los módulos principales.
+- Validación sintáctica de los archivos modificados.
+- Revisión documental de la fase y del contrato visual actualizado.
 
 ## Fase 8: Pruebas y automatización de calidad
 
